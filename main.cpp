@@ -7,14 +7,12 @@ int main(int argc, char *argv[])
     MyPicture picture("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\Lenna.bmp");
 
     //picture.ConvertToNegative();
-    //picture.ConvertToMonochrome();
-    //picture.ConvertToNegative();
-    //picture.ResetToOriginal();
     //picture.HorizontalSwap();
     //picture.WerticalSwap();
     //picture.Blur();
     //picture.Sharpness();
-    picture.Sobel("All");
+    picture.Sobel("All");   //X, or Y, or All
+
 
 
 

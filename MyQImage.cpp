@@ -1,60 +1,79 @@
 #include "MyQImage.h"
 
-MyQImage::MyQImage(QString file)
+void MyQImage::setWidth(int _width)
 {
-    Image = QImage(file);
-    if(Image.width() != 0 && Image.height() != 0){
-        SetLoad(true);
-        printf("Load succesfully!\n");
+    width = _width;
+}
+
+void MyQImage::setHeight(int _height)
+{
+    height = _height;
+}
+
+void MyQImage::LoadImage(QString file)
+{
+    QImage Picture(file);
+    format = Picture.format();
+
+    if(Picture.width() != 0 && Picture.height() != 0){
+
+        free(Image);
+
+        setWidth(Picture.width());
+        setHeight(Picture.height());
+
+        Image = (double *)malloc(Width() * Height() * sizeof(double));
+
+        if(Image == NULL){
+            SetLoad(false);
+            printf("Error: Insufficient memory available\n");
+        } else {
+            for(int x = 0; x < Height(); x++){
+                for(int y = 0; y < Width(); y++){
+                    SetPixel(x,y,getMonoColor(Picture.pixel(x,y)));
+                }
+            }
+
+            SetLoad(true);
+            printf("Load succesfully!\n");
+        }
     } else {
         SetLoad(false);
         printf("Error: file not load!\n");
     }
 }
 
-MyQImage::MyQImage(QImage Parent)
+MyQImage::MyQImage(QString file)
 {
-    QImage period(Parent.width(),Parent.height(), Parent.format());
-    Image = Parent;
-    if(Image.width() != 0 && Image.height() != 0){
-        SetLoad(true);
-        printf("Load succesfully!\n");
-    } else {
-        SetLoad(false);
-        printf("Error: file not load!\n");
-    }
+    LoadImage(file);
 }
 
 MyQImage::MyQImage()
 {
     SetLoad(false);
+    Image = NULL;
 }
 
-void MyQImage::LoadImage(QString file)
+double MyQImage::checkColor(double color)
 {
-    Image = QImage(file);
-    if(Image.width() != 0 && Image.height() != 0){
-        SetLoad(true);
-        printf("Load succesfully!\n");
-    } else {
-        SetLoad(false);
-        printf("Error: file not load!\n");
-    }
+    if(color > 255.0) color = 255.0;
+    if(color < 0.0) color = 0.0;
+    return color;
 }
 
-QImage MyQImage::GetImage()
+double MyQImage::getMonoColor(QRgb color)
 {
-    return Image;
+    return (double)qRed(color) * 0.299 + (double)qGreen(color) * 0.587 + (double)qBlue(color) * 0.114;
 }
 
 int MyQImage::Width()
 {
-    return Image.width();
+    return width;
 }
 
 int MyQImage::Height()
 {
-    return Image.height();
+    return height;
 }
 
 bool MyQImage::IsLoad()
@@ -67,34 +86,24 @@ void MyQImage::SetLoad(bool Load)
     load = Load;
 }
 
-void MyQImage::SetPixel(int x, int y, QRgb color)
+void MyQImage::SetPixel(int x, int y, double color)
 {
-    Image.setPixel(x,y,color);
+    *(Image + x * Width() + y) = checkColor(color);
 }
 
-QRgb MyQImage::GetPixel(int x, int y)
+double MyQImage::GetPixel(int x, int y)
 {
-    return Image.pixel(x,y);
+    return *(Image + x * Width() + y);
 }
 
-int MyQImage::getRed(int x, int y)
+QRgb MyQImage::GetColorPixel(int x, int y)
 {
-    return qRed(Image.pixel(x,y));
-}
-
-int MyQImage::getGreen(int x, int y)
-{
-    return qGreen(Image.pixel(x,y));
-}
-
-int MyQImage::getBlue(int x, int y)
-{
-    return qBlue(Image.pixel(x,y));
+    return qRgb(GetPixel(x,y),GetPixel(x,y),GetPixel(x,y));
 }
 
 void MyQImage::SwapPixel(int x1, int y1, int x2, int y2)
 {
-    QRgb pixel = GetPixel(x1,y1);
+    double pixel = GetPixel(x1,y1);
     SetPixel(x1, y1, GetPixel(x2,y2));
     SetPixel(x2, y2, pixel);
 }
@@ -125,10 +134,19 @@ void MyQImage::WerticalSwap()
     }
 }
 
-void MyQImage::Save(QString file)
+void MyQImage::SaveImage(QString file)
 {
     if(IsLoad()) {
-        Image.save(file);
+        QImage Picture(Width(),Height(),format);
+
+        for(int x = 0; x < Height(); x++){
+            for(int y = 0; y < Width(); y++){
+                Picture.setPixel(x,y,GetColorPixel(x,y));
+            }
+        }
+
+        Picture.save(file);
+
         printf("Save file OK!\n");
     }
 }
