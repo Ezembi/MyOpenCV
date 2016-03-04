@@ -1,76 +1,46 @@
 #include "mypicture.h"
 
-void MyPicture::SetLoad(bool _load)
-{
-    load = _load;
-}
-
-int MyPicture::getN(int x0, int x1, int y0, int y1)
-{
-    return (((x1 - x0)+1) * ((y1 - y0)+1)) - 1;
-}
-
-double *MyPicture::Clone(MyQImage image)
-{
-    double * result;
-
-    if(image.IsLoad()){
-        free(result);
-        result = (double *)malloc(Width() * Height() * sizeof(double));
-        if(result == NULL){
-            SetLoad(false);
-            printf("Error: Insufficient memory available\n");
-        } else {
-            for(int x = 0; x < Height(); x++){
-                for(int y = 0; y < Width(); y++){
-                    *(result + x * Width() + y) = image.GetPixel(x,y);
-                }
-            }
-
-            SetLoad(true);
-            printf("Load succesfully!\n");
-        }
-    }
-
-    return result;
-}
-
 double MyPicture::GetSobelGradient(double Gx, double Gy)
 {
     return sqrt((Gx*Gx) + (Gy*Gy));
 }
 
-int MyPicture::Width()
+int MyPicture::Width() const
 {
     return Result.Width();
 }
 
-int MyPicture::Height()
+int MyPicture::Height() const
 {
     return Result.Height();
 }
 
-bool MyPicture::IsLoad()
-{
-    return Result.IsLoad();
-}
-
 MyPicture::MyPicture(QString file){
     Result.LoadImage(file);
-    SetLoad(Result.IsLoad());
 }
 
 void MyPicture::ConvertToNegative()
 {
-    if(IsLoad()) {
-        printf("Start: ConvertToNegative\n");
-        for(int x = 0; x < Result.Height(); x++){
-            for(int y = 0; y < Result.Width(); y++) {
-                Result.SetPixel(x,y,255.0 - Result.GetPixel(x,y));
-            }
+    printf("Start: ConvertToNegative\n");
+    for(int x = 0; x < Result.Height(); x++){
+        for(int y = 0; y < Result.Width(); y++) {
+            Result.SetPixel(x,y,1.0 - Result.GetPixel(x,y));
         }
-        printf("ConvertToNegative OK!\n");
     }
+    printf("ConvertToNegative OK!\n");
+}
+
+int MyPicture::reflect(int x, int MaxX)
+{
+    if(x > MaxX - 1){
+        return MaxX - (MaxX - x) - 1;
+    }
+
+    if(x < 0){
+        return -1 * x;
+    }
+
+    return x;
 }
 
 void MyPicture::HorizontalSwap()
@@ -85,56 +55,51 @@ void MyPicture::WerticalSwap()
 
 void MyPicture::Blur()
 {
-    if(IsLoad()) {
-        printf("Start: Blur\n");
-        int kernel[3][3] = {
-            {1,1,1},
-            {1,1,1},
-            {1,1,1}
-        };
-        double color;
+    printf("Start: Blur\n");
+    int kernel[3][3] = {
+        {1,1,1},
+        {1,1,1},
+        {1,1,1}
+    };
+    double color;
 
-        for(int x = 0; x < Result.Height(); x++){
-            for(int y = 0; y < Result.Width(); y++) {
-                color = Convolution(&kernel[0][0],1,1,x,y)/9;
-                Result.SetPixel(x,y,color);
-            }
+    for(int x = 0; x < Result.Height() - 1; x++){
+        for(int y = 0; y < Result.Width() - 1; y++) {
+            color = Convolution(&kernel[0][0],1,1,x,y)/9;
+            Result.SetPixel(x,y,color);
         }
-        printf("Blur OK!\n");
     }
+    printf("Blur OK!\n");
 }
 
 void MyPicture::Sharpness()
 {
-    if(IsLoad()) {
-        printf("Start: Sharpness\n");
-        int kernel_blur[3][3] = {
-            {1,1,1},
-            {1,1,1},
-            {1,1,1}
-        };
+    printf("Start: Sharpness\n");
+    int kernel_blur[3][3] = {
+        {1,1,1},
+        {1,1,1},
+        {1,1,1}
+    };
 
-        int kernel_sharpness[3][3] = {
-            {0,0,0},
-            {0,2,0},
-            {0,0,0}
-        };
+    int kernel_sharpness[3][3] = {
+        {0,0,0},
+        {0,2,0},
+        {0,0,0}
+    };
 
-        double color;
+    double color;
 
-        for(int x = 0; x < Result.Height(); x++){
-            for(int y = 0; y < Result.Width(); y++) {
-                color = Convolution(&kernel_sharpness[0][0],1,1,x,y) - Convolution(&kernel_blur[0][0],1,1,x,y)/9;
-                Result.SetPixel(x,y,color);
-            }
+    for(int x = 0; x < Result.Height()-1; x++){
+        for(int y = 0; y < Result.Width()-1; y++) {
+            color = Convolution(&kernel_sharpness[0][0],1,1,x,y) - Convolution(&kernel_blur[0][0],1,1,x,y)/9;
+            Result.SetPixel(x,y,color);
         }
-        printf("Sharpness OK!\n");
     }
+    printf("Sharpness OK!\n");
 }
 
 void MyPicture::Sobel(QString Param)
 {
-    if(IsLoad()) {
         printf("Start: Sobel\n");
 
         int kernelX[3][3] = {
@@ -152,81 +117,56 @@ void MyPicture::Sobel(QString Param)
         double color;
         double Gx,Gy;
 
-        double * period = Clone(Result);
+        MyQImage copy = Result;
 
         for(int x = 0; x < Result.Height(); x++){
             for(int y = 0; y < Result.Width(); y++) {
                 if(Param == "X") {
-                    color = Convolution(period, &kernelX[0][0],1,1,x,y);
+                    color = Convolution(copy, &kernelX[0][0],1,1,x,y);
                     Result.SetPixel(x,y,color);
                 } else if(Param == "Y") {
-                    color = Convolution(period, &kernelY[0][0],1,1,x,y);
+                    color = Convolution(copy, &kernelY[0][0],1,1,x,y);
                     Result.SetPixel(x,y,color);
                 } else if(Param == "All"){
-                    Gx = Convolution(period, &kernelX[0][0],1,1,x,y);
-                    Gy = Convolution(period, &kernelY[0][0],1,1,x,y);
-                    color = GetSobelGradient(Gx,Gy);
-                    Result.SetPixel(x,y,color);
+                    Gx = Convolution(copy, &kernelX[0][0],1,1,x,y);
+                    Gy = Convolution(copy, &kernelY[0][0],1,1,x,y);
+                    Result.SetPixel(x,y,GetSobelGradient(Gx,Gy));
                 }
 
             }
         }
 
-        free(period);
-
         printf("Sobel OK!\n");
-    }
 }
 
-double MyPicture::Convolution(int *Kernel, int u, int v, int x, int y)
+double MyPicture::Convolution(const int *Kernel, int u, int v, int x, int y)
 {
     int x0 = x - u, x1 = x + u, y0 = y - v, y1 = y + v;
-    if(x0 < 0){
-        x0 = 0;
-    }
-    if(x1 >= Result.Width()){
-        x1 = Result.Width() - 1;
-    }
-    if(y0 < 0){
-        y0 = 0;
-    }
-    if(y1 >= Result.Height()){
-        y1 = Result.Height() - 1;
-    }
+    int xMax = Result.Height()-1, yMax = Result.Width()-1;
 
     double resultPixel = 0.0;
-    int n = getN(x0,x1,y0,y1);
+    int n = 8;
 
     for(int y = y0 ; y <= y1; y++) {
         for(int x = x0; x <= x1; x++, n--){
-            resultPixel += (double)(Kernel[n] * Result.GetPixel(x,y));
+            //printf("Kernel[%d] = %lf; reflect_x = %d; reflect_y = %d;GetPixel = %lf\n",n,(double)Kernel[n],reflect(x, xMax),reflect(y, yMax),Result.GetPixel(reflect(x, xMax),reflect(y, yMax)));
+            resultPixel += ((double)Kernel[n] * Result.GetPixel(reflect(x, xMax),reflect(y, yMax)));
         }
     }
     return resultPixel;
 }
 
-double MyPicture::Convolution(double * image, int *Kernel, int u, int v, int x, int y)
+double MyPicture::Convolution(const MyQImage& image, const int *Kernel, int u, int v, int x, int y)
 {
     int x0 = x - u, x1 = x + u, y0 = y - v, y1 = y + v;
-    if(x0 < 0){
-        x0 = 0;
-    }
-    if(x1 >= Result.Width()){
-        x1 = Result.Width() - 1;
-    }
-    if(y0 < 0){
-        y0 = 0;
-    }
-    if(y1 >= Result.Height()){
-        y1 = Result.Height() - 1;
-    }
+    int xMax = image.Height(), yMax = image.Width();
 
     double resultPixel = 0.0;
-    int n = getN(x0,x1,y0,y1);
+    int n = 8;
 
     for(int y = y0 ; y <= y1; y++) {
         for(int x = x0; x <= x1; x++, n--){
-            resultPixel += (double)(Kernel[n] * *(image + x * Width() + y));
+            resultPixel += ((double)Kernel[n] * image.GetPixel(reflect(x, xMax),reflect(y, yMax)));
         }
     }
     return resultPixel;
@@ -234,8 +174,5 @@ double MyPicture::Convolution(double * image, int *Kernel, int u, int v, int x, 
 
 void MyPicture::SavePictureInFile(QString file)
 {
-    if(IsLoad()) {
-        Result.SaveImage(file);
-        printf("Save file OK!\n");
-    }
+    Result.SaveImage(file);
 }
