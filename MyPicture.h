@@ -4,7 +4,7 @@
 #include <QRgb>
 #include <QString>
 #include <MyQImage.h>
-#include <math.h>
+#include <qmath.h>
 
 /**
  * @brief мой класс обработки изображения
@@ -34,6 +34,11 @@ public:
     void Blur();                            //размытие
     void Sharpness();                       //резкость
     void Sobel(QString Param);              //собель
+
+    void GaussianFilter(double _r
+            );                              //фильтр Гауса
+    double GaussianConvolution(int _x, int _y, double _r
+            );
 
     double Convolution(
             const int *Kernel, int u, int v, int x, int y
