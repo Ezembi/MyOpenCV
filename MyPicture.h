@@ -17,7 +17,7 @@ private:
     MyQImage Result;                        //обработанное изображение
 
 private:
-    double GetSobelGradient(
+    double static GetSobelGradient(
             double Gx, double Gy
             );                              //получить значение градиента
 
@@ -27,25 +27,17 @@ public:
     MyPicture(QString file);
     void ConvertToNegative();               //получить негатив изображения
 
-    int reflect(int x,int MaxX);            //обработка краевых эффектов отражением
-
     void HorizontalSwap();                  //отобразить по горизонтали
-    void WerticalSwap();                    //отобразить по вертикали
+    void VerticalSwap();                    //отобразить по вертикали
     void Blur();                            //размытие
     void Sharpness();                       //резкость
     void Sobel(QString Param);              //собель
-
+/*
     void GaussianFilter(double _r
             );                              //фильтр Гауса
     double GaussianConvolution(int _x, int _y, double _r
             );
-
-    double Convolution(
-            const int *Kernel, int u, int v, int x, int y
-            );                              //свёртка
-    double Convolution(const MyQImage& image, const int *Kernel, int u, int v, int x, int y
-            );                              //свёртка для собеля, что бы не использовать изменённые пиксели
-
+*/
     void SavePictureInFile(QString file);   //сохранить изображение в файл
 };
 
