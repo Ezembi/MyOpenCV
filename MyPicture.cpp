@@ -5,6 +5,16 @@ double MyPicture::GetSobelGradient(double Gx, double Gy)
     return sqrt((Gx*Gx) + (Gy*Gy));
 }
 
+void MyPicture::printKernel(double *Kernel, int width, int height)
+{
+    for(int x = 0 ; x < width; x++) {
+        for(int y = 0; y < height; y++){
+            printf("%lf ",  Kernel[x * width + y]);
+        }
+        printf("\n");
+    }
+}
+
 int MyPicture::Width() const
 {
     return Result.Width();
@@ -28,6 +38,11 @@ void MyPicture::ConvertToNegative()
         }
     }
     printf("ConvertToNegative OK!\n");
+}
+
+void MyPicture::ResizeImage(int NewWidth, int NewHeight)
+{
+    Result.ResizeImage(NewWidth, NewHeight);
 }
 
 void MyPicture::HorizontalSwap()
@@ -131,44 +146,65 @@ void MyPicture::Sobel(QString Param)
     printf("Sobel OK!\n");
 }
 
-/*
-void MyPicture::GaussianFilter(double _r)
+void MyPicture::Pyramid(int octave, double numLevel, double finishOctaveLevel)
 {
-    printf("Start: GaussianFilter\n");
-    double color;
+    double k = pow(2.0, 1.0 / numLevel);
+    double sigma;
 
-    if(_r != 0){
-        for(int x = 0; x < Result.Height(); x++){
-            for(int y = 0; y < Result.Width(); y++) {
-                color = GaussianConvolution(x, y, _r);
-                Result.SetPixel(x,y,color);
+    if(octave != 0){
+        for(int i = 0; i < octave; i++){
+            sigma = 1;
+            for(double finish = 0; finish <= finishOctaveLevel && finish <= numLevel; finish++){
+
+                if((sigma == 1 && i == 0) || (sigma != 1)){
+                    GaussianFilter(sigma);
+                }
+
+                sigma *= k;
+
             }
+            ResizeImage(Width() / 2, Height() / 2);
         }
+    }
+}
+
+void MyPicture::GaussianFilter(double r)
+{
+    printf("Start: GaussianFilter (sigma = %lf)\n", r);
+
+    if(r != 0) {
+        int width_height = 6 * qRound(r) + 1;
+
+        double Kernel[width_height][width_height];
+
+        GetGaussianKernel(&Kernel[0][0], width_height, width_height, r);
+
+        MyQImage copy = Result;
+
+        Result.Convolution(copy, &Kernel[0][0], width_height, width_height);
+
     }
 
     printf("GaussianFilter OK!\n");
 }
 
-double MyPicture::GaussianConvolution(int _x, int _y, double r)
+void MyPicture::GetGaussianKernel(double *Kernel, int width, int height, double r)
 {
-    //int x0 = _x - _u, x1 = _x + _u, y0 = _y - _v, y1 = _y + _v;
-    int xMax = Result.Height(), yMax = Result.Width();
-
-    double resultPixel = 0.0;
     double numPow;
+    int x0, x1, y0, y1;
+    x0 = - width / 2;
+    x1 = width / 2 ;
+    y0 = - height / 2;
+    y1 = height / 2;
 
-    for(double u = -r ; u < r + 1; u++) {
-        for(double v = -r; v < r + 1; v++){
-            if((r * r) >= (u * u + v * v)){
-                numPow = 0;
-                numPow = -(u * u + v * v) / (2.0 * (r * r));
-                resultPixel += (pow(M_E, numPow) * Result.GetPixel(reflect(_x + u, xMax),reflect(_y + v, yMax))) * (1.0 / (2.0 * M_PI * (r * r))) ;
-            }
+    for(double x = x0, xKernel = 0 ; x <= x1; x++, xKernel++) {
+        for(double y = y0, yKernel = 0; y <= y1; y++, yKernel++){
+            numPow = 0;
+            numPow = -(x * x + y * y) / (2.0 * (r * r));
+            Kernel[qRound(xKernel) * width + qRound(yKernel)] = pow(M_E, numPow) * (1.0 / (2.0 * M_PI * (r * r))) ;
         }
     }
-    return resultPixel * 2.3;
 }
-*/
 
 void MyPicture::SavePictureInFile(QString file)
 {

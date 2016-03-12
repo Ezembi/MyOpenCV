@@ -18,7 +18,9 @@ private:
 
     double max;
     double min;
-    double step;
+
+    double minOrigial;
+    double maxOrigial;
 
 private:
 
@@ -34,27 +36,31 @@ public:
     MyQImage(const MyQImage& data);                     //конструктор копирования
     ~MyQImage();
 
-    void getNormalStep();                         //получить коэффициент нормализации
+    void getNormalStep();                               //получить коэффициент нормализации
     int getNormalNumber(double Number) const;           //получить нормализованное число
-    double static checkColor(double color);             //проверка значения цвета на 0...255
-    double static getMonoColor(QRgb color);             //получить моно цвет пикселя
+    double getMonoColor(QRgb color);                    //получить моно цвет пикселя
+
     int Width() const;                                  //получить ширину изображения
     int Height() const;                                 //получить высоту изображения
     void SetPixel(int x, int y, double color);          //задаёт цвет пикселя
     double GetPixel(int x, int y) const;                //получить моно цвет
-    QRgb GetColorPixel(int x, int y) const;//получить цветной пиксель (нормализация)
+    QRgb GetColorPixel(int x, int y) const;             //получить цветной пиксель (нормализация)
     void SwapPixel(int x1, int y1, int x2, int y2);     //поменять пиксели местами
     void HorizontalSwap();                              //отобразить по горизонтали
     void VerticalSwap();                                //отобразить по вертикали
+    void ResizeImage(
+            int NewHeight,
+            int NewWidth
+            );                                          //изменить размер изображения
 
     void Convolution(
             const double *Kernel, int u, int v
-            );                              //свёртка
+            );                                          //свёртка
     void Convolution(
             const MyQImage& image, const double *Kernel, int u, int v
-            );                              //свёртка для собеля, что бы не использовать изменённые пиксели
+            );                                          //свёртка для собеля, что бы не использовать изменённые пиксели
 
-    void SaveImage(QString file);                 //сохранение изображение
+    void SaveImage(QString file);                       //сохранение изображение
 };
 
 #endif // MYQIMAGE_H

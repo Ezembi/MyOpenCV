@@ -27,6 +27,8 @@ void MyQImage::LoadImage(QString file)
 {
     QImage Picture(file);
     format = Picture.format();
+    minOrigial = 9999.0;
+    maxOrigial = -9999.0;
 
     if(Picture.width() != 0 && Picture.height() != 0){
 
@@ -70,9 +72,7 @@ MyQImage::MyQImage(const MyQImage& data)
         for(int x = 0; x < data.Height(); x++){
             for(int y = 0; y < data.Width(); y++){
                 SetPixel(x,y,data.GetPixel(x,y));
-                //printf("x = %d; y = %d; data = %lf; this = %lf\n", x,y,data.GetPixel(x,y),GetPixel(x,y));
             }
-           // printf("x = %d;\n", x);
         }
 
         printf("Copy succesfully!\n");
@@ -87,38 +87,20 @@ MyQImage::~MyQImage()
     printf("Memory free\n");
 }
 
-void MyQImage::getNormalStep()
-{
-    //  auto dminmax = std::minmax(Image);
-    //  return ((double)dminmax.second - (double)dminmax.first) / 255.0;
-
-    min = GetPixel(0,0), max = GetPixel(0,0);
-    for(int x = 0; x < Height(); x++){
-        for(int y = 0; y < Width(); y++){
-            if(GetPixel(x,y) > max) max = GetPixel(x,y);
-            if(GetPixel(x,y) < min) min = GetPixel(x,y);
-        }
-    }
-
-
-    step = (max - min) / 255.0;
-}
-
 int MyQImage::getNormalNumber(double Number) const
 {
-    int normalNumber = 0;
-    double i = min;
-    while (i < Number && i < max){
-        normalNumber++;
-        i += step;
-    }
+    return ((Number - min) / (max - min)) * (255);
 
-    return normalNumber;
 }
 
 double MyQImage::getMonoColor(QRgb color)
 {
-    return ((double)qRed(color) * 0.299 + (double)qGreen(color) * 0.587 + (double)qBlue(color) * 0.114) / 255.0;
+    double colorOrigial = ((double)qRed(color) * 0.299 + (double)qGreen(color) * 0.587 + (double)qBlue(color) * 0.114);
+
+    if(colorOrigial > maxOrigial) maxOrigial = colorOrigial;
+    if(colorOrigial < minOrigial) minOrigial = colorOrigial;
+
+    return colorOrigial / 255.0;
 }
 
 int MyQImage::Width() const
@@ -143,7 +125,7 @@ double MyQImage::GetPixel(int x, int y) const
 
 QRgb MyQImage::GetColorPixel(int x, int y) const
 {
-    double color = getNormalNumber(GetPixel(x,y));
+    double color = ((GetPixel(x,y) - min) / (max - min)) * (maxOrigial - minOrigial);
     return qRgb(color, color, color);
 }
 
@@ -176,6 +158,23 @@ void MyQImage::VerticalSwap()
     printf("VerticalSwap OK!\n");
 }
 
+void MyQImage::ResizeImage(int NewWidth , int NewHeight)
+{
+    int stepX, stepY;
+    stepY = Height() / NewHeight;
+    stepX = Width() / NewWidth;
+    double color;
+    for(int NewX = 0, x = 0; NewX < NewWidth; NewX++, x += stepX){
+        for(int NewY = 0, y = 0; NewY< NewHeight; NewY++, y += stepY){
+            color = GetPixel(x,y);
+            Image[NewX * NewWidth + NewY] = color;
+        }
+    }
+
+    setHeight(NewHeight);
+    setWidth(NewWidth);
+}
+
 void MyQImage::Convolution(const double *Kernel, int u, int v)
 {
     int x0, x1, y0, y1;
@@ -185,8 +184,8 @@ void MyQImage::Convolution(const double *Kernel, int u, int v)
     double resultPixel = 0.0;
     int n = u * v - 1;
 
-    for(int i = 0; i < Height()-1; i++){
-        for(int j = 0; j < Width()-1; j++) {
+    for(int i = 0; i < Height(); i++){
+        for(int j = 0; j < Width(); j++) {
             x0 = i - (u / 2);
             x1 = i + (u / 2);
             y0 = j - (v / 2);
@@ -215,8 +214,8 @@ void MyQImage::Convolution(const MyQImage& image, const double *Kernel, int u, i
     double resultPixel = 0.0;
     int n = u * v - 1;
 
-    for(int i = 0; i < image.Height()-1; i++){
-        for(int j = 0; j < image.Width()-1; j++) {
+    for(int i = 0; i < image.Height(); i++){
+        for(int j = 0; j < image.Width(); j++) {
             x0 = i - (u / 2);
             x1 = i + (u / 2);
             y0 = j - (v / 2);
@@ -240,16 +239,32 @@ void MyQImage::SaveImage(QString file)
 {
     QImage Picture(Width(),Height(),format);
 
-    getNormalStep();
+    auto dminmax = std::minmax(&Image[0], &Image[0] + Height()* Width() );
 
-    for(int x = 0; x < Height(); x++){
-        for(int y = 0; y < Width(); y++){
-            Picture.setPixel(x,y,GetColorPixel(x,y));
+    max = GetPixel(0,0);
+    min = GetPixel(0,0);
+    min = *dminmax.second;
+    max = *dminmax.first;
+
+    max = GetPixel(0,0);
+    min = GetPixel(0,0);
+
+    for(int x = 0; x < Width(); x++){
+        for(int y = 0; y < Height(); y++){
+
+            if(max < GetPixel(x,y)) max = GetPixel(x,y);
+            if(min > GetPixel(x,y)) min = GetPixel(x,y);
+        }
+    }
+
+    for(int y = 0; y < Height(); y++){
+        for(int x = 0; x < Width(); x++){
+            Picture.setPixel(x, y, GetColorPixel(x,y));
         }
     }
 
     Picture.save(file);
 
-    printf("Save file OK!\n");
+    printf("Save file OK! (%d x %d)\nmin = %lf; max = %lf \nminOriginal = %lf; maxOriginal = %lf\n",Width(), Height(),min, max, minOrigial, maxOrigial);
 }
 
