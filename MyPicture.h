@@ -1,5 +1,6 @@
 #ifndef MYPICTURE_H
 #define MYPICTURE_H
+#include <defines.h>
 #include <QImage>
 #include <QRgb>
 #include <QString>
@@ -26,6 +27,10 @@ private:
             double *Kernel, int width, int height
             );
 
+    int ANMS(
+            const double *Array_interesting_point, int point_count, double T
+            );                              //Adaptive non-maximum suppression
+
 public:
     int Width() const;                      //ширина изображения
     int Height() const;                     //высота изображения
@@ -34,12 +39,26 @@ public:
     void ResizeImage(
             int NewWidth,
             int NewHeight);
+    void AddNoise(int count_point);                     //добавление шума
 
     void HorizontalSwap();                  //отобразить по горизонтали
     void VerticalSwap();                    //отобразить по вертикали
     void Blur();                            //размытие
     void Sharpness();                       //резкость
     void Sobel(QString Param);              //собель
+
+    /**
+     * @brief Moravec - оператор Моравека
+     * @param u - координаты в окне
+     * @param v - координаты в окне
+     * @param dx - сдвига окна по Х
+     * @param dy - сдвига окна по У
+     * @param px - окрестность локального максима Х
+     * @param py - окрестность локального максима У
+     * @param T - пороговое значение
+     */
+    void Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T
+            );
 
     /**
      * @brief Pyramid                       //пирамидальное масштабирование

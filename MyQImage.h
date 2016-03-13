@@ -1,11 +1,12 @@
 #ifndef MYQIMAGE_H
 #define MYQIMAGE_H
+#include <defines.h>
+#include <time.h>
 #include <QImage>
 #include <QRgb>
 #include <QString>
 #include <memory>
 #include <algorithm>
-
 
 class MyQImage
 {
@@ -15,6 +16,8 @@ private:
     int height;                                         //высота
     int width;                                          //ширина
     QImage::Format format;                              //формат изображения, для сохранения
+
+    int count_interesting_point;
 
     double max;
     double min;
@@ -26,7 +29,6 @@ private:
 
     void setWidth(int _width);                          //получить ширину изображения
     void setHeight(int _height);                        //получить высоту изображения
-    int reflect(int x,int MaxX);                        //обработка краевых эффектов (отражение коэф зеркально от 0 и от ширины / высоты)
 
 public:
     void LoadImage(QString file);                       //загрузка изображения
@@ -44,10 +46,11 @@ public:
     int Height() const;                                 //получить высоту изображения
     void SetPixel(int x, int y, double color);          //задаёт цвет пикселя
     double GetPixel(int x, int y) const;                //получить моно цвет
-    QRgb GetColorPixel(int x, int y) const;             //получить цветной пиксель (нормализация)
+    QRgb GetColorPixel(int x, int y);                   //получить цветной пиксель (нормализация)
     void SwapPixel(int x1, int y1, int x2, int y2);     //поменять пиксели местами
     void HorizontalSwap();                              //отобразить по горизонтали
     void VerticalSwap();                                //отобразить по вертикали
+    void AddNoise(int count_point);                     //добавление шума
     void ResizeImage(
             int NewHeight,
             int NewWidth

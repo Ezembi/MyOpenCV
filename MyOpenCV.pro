@@ -15,4 +15,5 @@ SOURCES += main.cpp \
 
 HEADERS += \
     MyPicture.h \
-    MyQImage.h
+    MyQImage.h \
+    Defines.h

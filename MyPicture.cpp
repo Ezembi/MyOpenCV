@@ -15,6 +15,38 @@ void MyPicture::printKernel(double *Kernel, int width, int height)
     }
 }
 
+int MyPicture::ANMS(const double *Array_interesting_point, int point_count, double T)
+{
+    int local_count;
+    int radius = 0;
+    bool isMax;
+    int maxX = Width(), maxY = Height();
+
+    do{
+        radius++;
+        local_count = 0;
+
+        for(int x = 0; x < Width(); x++){
+            for(int y = 0; y < Height(); y++){
+                isMax = true;
+                for(int px = -radius; px < radius; px++){
+                    for(int py = -radius; py < radius; py++){
+                        if(Array_interesting_point[x * Width() + y] < Array_interesting_point[reflect(x + px, maxX) * Width() + reflect(y + py, maxY)]){
+                            isMax = false;
+                        }
+                    }
+                }
+
+                if(isMax && Array_interesting_point[x * Width() + y] > T){
+                    local_count++;
+                }
+            }
+        }
+    }while(local_count > point_count);
+
+    return radius;
+}
+
 int MyPicture::Width() const
 {
     return Result.Width();
@@ -43,6 +75,11 @@ void MyPicture::ConvertToNegative()
 void MyPicture::ResizeImage(int NewWidth, int NewHeight)
 {
     Result.ResizeImage(NewWidth, NewHeight);
+}
+
+void MyPicture::AddNoise(int count_point)
+{
+    Result.AddNoise(count_point);
 }
 
 void MyPicture::HorizontalSwap()
@@ -144,6 +181,73 @@ void MyPicture::Sobel(QString Param)
 
 
     printf("Sobel OK!\n");
+}
+
+void MyPicture::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T)
+{
+    printf("Start: Moravec\n");
+    std::unique_ptr<double[]> S = std::make_unique<double[]>(Width() * Height());   //значение оператора
+
+    int u0, u1, v0, v1;
+    double minC;
+    double C;
+    double color1, color2;
+    int maxX = Width(), maxY = Height();
+
+
+    for(int x = 0; x < Width(); x++){
+        for(int y = 0; y < Height(); y++){
+            u0 = x - _u / 2;
+            u1 = x + _u / 2;
+            v0 = y - _v / 2;
+            v1 = y + _v / 2;
+
+            for(int dx = -_dx; dx < _dx; dx++){
+                for(int dy = -_dy; dy < _dy; dy++){
+                    C = 0;
+                    minC = -1;
+                    /*if(dx == 0 && dy == 0){} else*/ {
+                        for(int u = u0; u < u1; u++){
+                            for(int v = v0; v < v1; v++){
+
+                                color1 = Result.GetPixel(reflect(u, maxX), reflect(v, maxY));
+                                color2 = Result.GetPixel(reflect(u + dx, maxX), reflect(v + dy, maxY));
+                                C += (color1 - color2) * (color1 - color2);
+
+                            }
+                        }
+                        if(C < minC) minC = C;
+                    }
+                }
+            }
+            S[x * Width() + y] = C;
+        }
+    }
+
+    bool isMax;
+
+    int _px, _py;
+
+    _px = _py = ANMS(&S[0], point_count, T);
+
+    for(int x = 0; x < Width(); x++){
+        for(int y = 0; y < Height(); y++){
+            isMax = true;
+            for(int px = -_px; px < _px; px++){
+                for(int py = -_py; py < _py; py++){
+                    if(S[x * Width() + y] < S[reflect(x + px, maxX) * Width() + reflect(y + py, maxY)]){
+                        isMax = false;
+                    }
+                }
+            }
+
+            if(isMax && S[x * Width() + y] > T){
+                Result.SetPixel(x,y,EXTRA_PIXEL);
+            }
+        }
+    }
+
+    printf("Moravec OK!\n");
 }
 
 void MyPicture::Pyramid(int octave, double numLevel, double finishOctaveLevel)
