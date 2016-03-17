@@ -250,10 +250,26 @@ void MyPicture::Moravec(int _u, int _v, int _dx, int _dy, int point_count, doubl
     printf("Moravec OK!\n");
 }
 
+void MyPicture::Harris()
+{
+    /*
+     * что такое градиент?
+     * что такое Ix? производная? чего?
+     * А - ? Сумма по оси х и const y? Вдоль границы выделенной области окна?
+     * аналогично В и С?
+     * для какой области выбирается f?
+     * как найти собственные числа? подбором u и v (точнее проходом по области окна)?
+     * диапазон u и v?
+     */
+
+}
+
 void MyPicture::Pyramid(int octave, double numLevel, double finishOctaveLevel)
 {
     double k = pow(2.0, 1.0 / numLevel);
     double sigma;
+
+    int picture_num = 0;
 
     if(octave != 0){
         for(int i = 0; i < octave; i++){
@@ -265,6 +281,8 @@ void MyPicture::Pyramid(int octave, double numLevel, double finishOctaveLevel)
                 }
 
                 sigma *= k;
+                SavePictureInFile("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\1\\" + QString::number(picture_num) + ".bmp");
+                picture_num++;
 
             }
             ResizeImage(Width() / 2, Height() / 2);

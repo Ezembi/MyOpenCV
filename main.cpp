@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
         //picture.Sobel("All");   //X, or Y, or All
         //picture.GaussianFilter(5);
         //picture.ResizeImage(256,256);
-        //picture.Pyramid(1,5,5);
+        //picture.Pyramid(6,3,3);
         //picture.AddNoise(500);
         picture.Moravec(3,3,6,6,300,0.2);
 

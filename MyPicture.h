@@ -60,6 +60,8 @@ public:
     void Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T
             );
 
+    void Harris();
+
     /**
      * @brief Pyramid                       //пирамидальное масштабирование
      * @param octave                        //кол-во октав (во скоько раз уменьшить изображение)
