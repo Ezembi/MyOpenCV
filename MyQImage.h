@@ -1,69 +1,112 @@
 #ifndef MYQIMAGE_H
 #define MYQIMAGE_H
-#include <defines.h>
+#include <GlobalNames.h>
 #include <time.h>
 #include <QImage>
 #include <QRgb>
 #include <QString>
 #include <memory>
 #include <algorithm>
+#include <assistant.h>
 
 class MyQImage
 {
 private:
 
-    std::unique_ptr<double[]> Image;
-    int height;                                         //высота
-    int width;                                          //ширина
-    QImage::Format format;                              //формат изображения, для сохранения
+    std::unique_ptr<double[]> Image_;
+    int height_;                                         //высота
+    int width_;                                          //ширина
+    QImage::Format format_ = QImage::Format_RGB32;       //формат изображения, для сохранения
 
-    int count_interesting_point;
+    int nInterestingPoint_;
 
-    double max;
-    double min;
+    double min_ = 0;
+    double max_ = 1;
 
-    double minOrigial;
-    double maxOrigial;
+    double minOrigial_ = 0;
+    double maxOrigial_ = 256;
 
 private:
 
-    void setWidth(int _width);                          //получить ширину изображения
-    void setHeight(int _height);                        //получить высоту изображения
+    void setWidth(int width);                           //получить ширину изображения
+    void setHeight(int height);                         //получить высоту изображения
 
 public:
-    void LoadImage(QString file);                       //загрузка изображения
+    void loadImage(QString file);                       //загрузка изображения
 
     MyQImage(QString file);
     MyQImage();
+    MyQImage(int width, int height);                    //создать пустое изображение
+    MyQImage(
+            const MyQImage& data,
+            int newWidth,
+            int newHeight
+            );                                          //создать изображение другого масштаба
+
     MyQImage(const MyQImage& data);                     //конструктор копирования
     ~MyQImage();
 
-    void getNormalStep();                               //получить коэффициент нормализации
-    int getNormalNumber(double Number) const;           //получить нормализованное число
+    int getNormalNumber(double number) const;           //получить нормализованное число
     double getMonoColor(QRgb color);                    //получить моно цвет пикселя
+    int getWidth() const;                               //получить ширину изображения (X)
+    int getHeight() const;                              //получить высоту изображения (Y)
+    QImage::Format getFormat() const;
+    void setPixel(int x, int y, double color);          //задаёт цвет пикселя
+    double getPixel(int x, int y) const;                //получить моно цвет
+    QRgb getColorPixel(int x, int y);                   //получить цветной пиксель (нормализация)
 
-    int Width() const;                                  //получить ширину изображения
-    int Height() const;                                 //получить высоту изображения
-    void SetPixel(int x, int y, double color);          //задаёт цвет пикселя
-    double GetPixel(int x, int y) const;                //получить моно цвет
-    QRgb GetColorPixel(int x, int y);                   //получить цветной пиксель (нормализация)
-    void SwapPixel(int x1, int y1, int x2, int y2);     //поменять пиксели местами
-    void HorizontalSwap();                              //отобразить по горизонтали
-    void VerticalSwap();                                //отобразить по вертикали
-    void AddNoise(int count_point);                     //добавление шума
-    void ResizeImage(
-            int NewHeight,
-            int NewWidth
+    void swapPixel(int x1, int y1, int x2, int y2);     //поменять пиксели местами
+    void horizontalSwap();                              //отобразить по горизонтали
+    void verticalSwap();                                //отобразить по вертикали
+    void blur(const MyQImage& originalImage);           //размытие
+    void sharpness(const MyQImage& originalImage);      //резкость
+    void sobel(
+            QString Param,
+            const MyQImage& originalImage
+            );                                          //собель
+    void gaussianFilter(
+            const MyQImage& originalImage,
+            double sigma
+            );                                          //свёртка Гаусом
+    void addNoise(int nPoint);                          //добавление шума
+    void resizeImage(
+            int newHeight,
+            int newWidth
             );                                          //изменить размер изображения
 
-    void Convolution(
-            const double *Kernel, int u, int v
-            );                                          //свёртка
-    void Convolution(
-            const MyQImage& image, const double *Kernel, int u, int v
-            );                                          //свёртка для собеля, что бы не использовать изменённые пиксели
+    void Moravec(
+            int _u,                                     //координаты в окне
+            int _v,                                     //координаты в окне
+            int _dx,                                    //сдвига окна по Х
+            int _dy,                                    //сдвига окна по У
+            int point_count,                            //кол-во интересных точек
+            double T                                    //пороговое значение точки
+            );                                          //оператор Моравека
 
-    void SaveImage(QString file);                       //сохранение изображение
+    void Harris(
+            int _dx,                                    //сдвига окна по Х
+            int _dy,                                    //сдвига окна по У
+            int point_count,                            //кол-во интересных точек
+            double T,                                    //пороговое значение точки
+            double k
+            );
+
+    void convolution(
+            const MyQImage& originalImage,
+            const double* kernel,
+            int u,
+            int v
+            );                                          //свёртка
+
+    void convolution(
+            const MyQImage& originalImage,
+            const double* row,
+            const double* column,
+            int u,
+            int v
+            );                                          //сепарабельная свёртка
+
+    void saveImage(QString file);                       //сохранение изображение
 };
 
 #endif // MYQIMAGE_H
