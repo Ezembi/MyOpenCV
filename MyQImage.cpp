@@ -164,6 +164,46 @@ QRgb MyQImage::getColorPixel(int x, int y)
 
 }
 
+void MyQImage::copy(const MyQImage &imageForCopy)
+{
+    Image_ = std::make_unique<double[]>((imageForCopy.getWidth() * imageForCopy.getHeight()));
+    setHeight(imageForCopy.getHeight());
+    setWidth(imageForCopy.getWidth());
+
+    format_ = imageForCopy.format_;
+    minOrigial_ = imageForCopy.minOrigial_;
+    maxOrigial_ = imageForCopy.maxOrigial_;
+
+    for(int x = 0; x < getWidth(); x++){
+        for(int y = 0; y < getHeight(); y++) {
+            setPixel(x, y, imageForCopy.getPixel(x,y));
+        }
+    }
+
+    printf("Copy succesfully!\n");
+}
+
+void MyQImage::resizeAndCopy(const MyQImage &imageForCopy, int newWidth, int newHeight)
+{
+    if(newWidth != 0 && newHeight != 0){
+        Image_ = std::make_unique<double[]>((newWidth * newHeight));
+        setHeight(newHeight);
+        setWidth(newWidth);
+
+        format_ = imageForCopy.format_;
+        minOrigial_ = imageForCopy.minOrigial_;
+        maxOrigial_ = imageForCopy.maxOrigial_;
+
+        for(int x = 0; x < getWidth(); x++){
+            for(int y = 0; y < getHeight(); y++) {
+                setPixel(x, y, imageForCopy.getPixel(x * 2, y * 2));
+            }
+        }
+
+        printf("Resize and copy succesfully!\n");
+    }
+}
+
 void MyQImage::swapPixel(int x1, int y1, int x2, int y2)
 {
     double pixel = getPixel(x1,y1);
@@ -273,23 +313,6 @@ void MyQImage::addNoise(int nPoint)
     }
 }
 
-void MyQImage::resizeImage(int newHeight , int newWidth)
-{
-    int stepX, stepY;
-    stepY = getHeight() / newWidth;
-    stepX = getWidth() / newHeight;
-    double color;
-    for(int NewX = 0, x = 0; NewX < newHeight; NewX++, x += stepX){
-        for(int NewY = 0, y = 0; NewY< newWidth; NewY++, y += stepY){
-            color = getPixel(x,y);
-            Image_[NewX * newHeight + NewY] = color;
-        }
-    }
-
-    setHeight(newWidth);
-    setWidth(newHeight);
-}
-
 void MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T)
 {
     printf("Start: Moravec\n");
@@ -298,7 +321,11 @@ void MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double
 
     std::unique_ptr<double[]> S = std::make_unique<double[]>(maxX * maxY);   //значение оператора
 
-    int u0, u1, v0, v1;
+    int u0;
+    int u1;
+    int v0;
+    int v1;
+
     double minC;
     double C;
     double color1, color2;
@@ -312,21 +339,25 @@ void MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double
 
             for(int dx = -_dx; dx < _dx; dx++){
                 for(int dy = -_dy; dy < _dy; dy++){
+
                     C = 0;
                     minC = -1;
+
                     for(int u = u0; u < u1; u++){
                         for(int v = v0; v < v1; v++){
 
                             color1 = getPixel(reflect(u, maxX), reflect(v, maxY));
                             color2 = getPixel(reflect(u + dx, maxX), reflect(v + dy, maxY));
                             C += (color1 - color2) * (color1 - color2);
-
                         }
                     }
-                    if(C < minC) minC = C;
 
+                    if(C < minC){
+                        minC = C;
+                    }
                 }
             }
+
             S[x * maxX + y] = C;
         }
     }
@@ -339,9 +370,12 @@ void MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double
 
     for(int x = 0; x < maxX; x++){
         for(int y = 0; y < maxY; y++){
+
             isMax = true;
+
             for(int px = -_px; px < _px; px++){
                 for(int py = -_py; py < _py; py++){
+
                     if(S[x * maxX + y] < S[reflect(x + px, maxX) * getWidth() + reflect(y + py, maxY)]){
                         isMax = false;
                     }
@@ -488,10 +522,8 @@ void MyQImage::convolution(const MyQImage& originalImage, const double* kernel, 
 
 void MyQImage::convolution(const MyQImage &originalImage, const double *row, const double *column, int u, int v)
 {
-
     convolution(originalImage, row, u, 1);
     convolution(*this, column, 1, v);
-
 }
 
 void MyQImage::saveImage(QString file)
@@ -528,4 +560,3 @@ void MyQImage::saveImage(QString file)
 
     printf("\nSave file OK! (%d x %d)\nCount interesting point = %d\nmin = %lf; max = %lf \nminOriginal = %lf; maxOriginal = %lf\n",getWidth(), getHeight(),nInterestingPoint_,min_, max_, minOrigial_, maxOrigial_);
 }
-

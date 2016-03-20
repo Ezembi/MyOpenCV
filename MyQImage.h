@@ -54,6 +54,13 @@ public:
     void setPixel(int x, int y, double color);          //задаёт цвет пикселя
     double getPixel(int x, int y) const;                //получить моно цвет
     QRgb getColorPixel(int x, int y);                   //получить цветной пиксель (нормализация)
+    void copy(const MyQImage& imageForCopy);            //скопировать изображение в данное
+    void resizeAndCopy(
+            const MyQImage& imageForCopy,
+            int newWidth,
+            int newHeight
+            );                                          //скопировать изображение в данное с исзменённым размером
+
 
     void swapPixel(int x1, int y1, int x2, int y2);     //поменять пиксели местами
     void horizontalSwap();                              //отобразить по горизонтали
@@ -69,10 +76,6 @@ public:
             double sigma
             );                                          //свёртка Гаусом
     void addNoise(int nPoint);                          //добавление шума
-    void resizeImage(
-            int newHeight,
-            int newWidth
-            );                                          //изменить размер изображения
 
     void Moravec(
             int _u,                                     //координаты в окне

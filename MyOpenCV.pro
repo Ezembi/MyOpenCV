@@ -10,10 +10,15 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    MyQImage.cpp
+    MyQImage.cpp \
+    PyramidLevel.cpp \
+    PyramidOctave.cpp \
+    Pyramid.cpp
 
 HEADERS += \
     MyQImage.h \
     Assistant.h \
-    lab_2.h \
-    GlobalNames.h
+    GlobalNames.h \
+    PyramidLevel.h \
+    PyramidOctave.h \
+    Pyramid.h
