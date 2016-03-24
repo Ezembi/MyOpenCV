@@ -17,18 +17,20 @@ int static reflect(int x, int maxX)
     return x;
 }
 
+int static getIndex(int x, int y, int width, int height){
+    return reflect(x, width) * height + reflect(y, height);
+}
 
 //отобразить ядро всёртки
 void static printKernel(double* kernel, int width, int height)
 {
     for(int x = 0 ; x < width; x++) {
         for(int y = 0; y < height; y++){
-            printf("%lf ",  kernel[x * width + y]);
+            printf("%lf ",  kernel[x * height + y]);
         }
         printf("\n");
     }
 }
-
 
 //Adaptive non-maximum suppression
 int static ANMS(const double* arrayInterestingPoint, int width, int height, int nPoint, double T)
@@ -46,13 +48,13 @@ int static ANMS(const double* arrayInterestingPoint, int width, int height, int 
                 isMax = true;
                 for(int px = -radius; px < radius; px++){
                     for(int py = -radius; py < radius; py++){
-                        if(arrayInterestingPoint[x * width + y] < arrayInterestingPoint[reflect(x + px, width) * width + reflect(y + py, width)]){
+                        if(arrayInterestingPoint[getIndex(x, y, width, height)] < arrayInterestingPoint[getIndex(reflect(x + px, width), reflect(y + py, width), width, height)]){
                             isMax = false;
                         }
                     }
                 }
 
-                if(isMax && arrayInterestingPoint[x * width + y] > T){
+                if(isMax && arrayInterestingPoint[x * height + y] > T){
                     nLocal++;
                 }
             }
@@ -61,7 +63,6 @@ int static ANMS(const double* arrayInterestingPoint, int width, int height, int 
 
     return radius;
 }
-
 
 //заполнения ядра Гауса
 void static getGaussianKernel(double* kernel, int width, int height, double sigma)
@@ -77,16 +78,9 @@ void static getGaussianKernel(double* kernel, int width, int height, double sigm
         for(double y = y0, yKernel = 0; y <= y1; y++, yKernel++){
             numPow = 0;
             numPow = -(x * x + y * y) / (2.0 * (sigma * sigma));
-            kernel[qRound(xKernel) * width + qRound(yKernel)] = pow(M_E, numPow) * (1.0 / (2.0 * M_PI * (sigma * sigma))) ;
+            kernel[getIndex(qRound(xKernel), qRound(yKernel), width, height)] = pow(M_E, numPow) * (1.0 / (2.0 * M_PI * (sigma * sigma)));
         }
     }
-
-}
-
-//получить значение градиента собеля
-double static getSobelGradient(double Gx, double Gy)
-{
-    return sqrt((Gx*Gx) + (Gy*Gy));
 }
 
 #endif // ASSISTANT

@@ -103,9 +103,70 @@ MyQImage::MyQImage(const MyQImage& data)
     }
 }
 
+MyQImage::MyQImage(MyQImage &&image)
+{
+    Image_ = std::move(image.Image_);
+
+    height_ = image.height_;
+    image.height_ = 0;
+
+    width_ = image.width_;
+    image.width_ = 0;
+
+    format_ = image.format_;
+
+    min_ = image.min_;
+    image.min_ = 0;
+
+    max_ = image.max_;
+    image.max_ = 0;
+
+    minOrigial_ = image.minOrigial_;
+    image.minOrigial_ = 0;
+
+    maxOrigial_ = image.maxOrigial_;
+    image.maxOrigial_ = 0;
+
+    printf("Move succesfully!\n");
+}
+
 MyQImage::~MyQImage()
 {
     printf("Memory free\n");
+}
+
+const MyQImage &MyQImage::operator=(MyQImage &&image)
+{
+    //fixme переделать
+    Image_ = std::move(image.Image_);
+
+    height_ = image.height_;
+    width_ = image.width_;
+
+    format_ = image.format_;
+
+    min_ = image.min_;
+    max_ = image.max_;
+
+    minOrigial_ = image.minOrigial_;
+    maxOrigial_ = image.maxOrigial_;
+}
+
+const MyQImage &MyQImage::operator=(const MyQImage &image)
+{
+    //fixme реализовать
+    /*Image_ = std::move(image.Image_);
+
+    height_ = image.height_;
+    width_ = image.width_;
+
+    format_ = image.format_;
+
+    min_ = image.min_;
+    max_ = image.max_;
+
+    minOrigial_ = image.minOrigial_;
+    maxOrigial_ = image.maxOrigial_;*/
 }
 
 int MyQImage::getNormalNumber(double number) const
@@ -141,12 +202,12 @@ QImage::Format MyQImage::getFormat() const
 
 void MyQImage::setPixel(int x, int y, double color)
 {
-    Image_[x * getHeight() + y] = color;
+    Image_[getIndex(x , y, getWidth(), getHeight())] = color;
 }
 
 double MyQImage::getPixel(int x, int y) const
 {
-    return Image_[x * getHeight() + y];
+    return Image_[getIndex(x , y, getWidth(), getHeight())];
 }
 
 QRgb MyQImage::getColorPixel(int x, int y)
@@ -234,62 +295,84 @@ void MyQImage::verticalSwap()
     printf("VerticalSwap OK!\n");
 }
 
-void MyQImage::blur(const MyQImage &originalImage)
+MyQImage MyQImage::blur() const
 {
-    printf("Start: Blur\n");
+    printf("Blur\n");
 
-    convolution(originalImage, &kernelBlur[0][0], 3, 3);
-
-    printf("Blur OK!\n");
+    return convolution(&kernelBlur[0][0], 3, 3);
 }
 
-void MyQImage::sharpness(const MyQImage &originalImage)
+MyQImage MyQImage::sharpness() const
 {
-    printf("Start: Sharpness\n");
+    printf("Sharpness\n");
 
-    convolution(originalImage, &kernelSharpness[0][0], 3, 3);
-
-    printf("Sharpness OK!\n");
+    return convolution(&kernelSharpness[0][0], 3, 3);
 }
 
-void MyQImage::sobel(QString Param, const MyQImage &originalImage)
+MyQImage MyQImage::sobel(QString Param) const
 {
-    printf("Start: Sobel\n");
+    printf("Sobel\n");
 
     int u = 3,v = 3;
 
-    MyQImage copyX = *this;
-    MyQImage copyY = *this;
-
-
     if(Param == "X") {
-        convolution(originalImage, &kernelSobelX[0][0],u,v);
+        return convolution(&kernelSobelX[0][0],u,v);
     } else if(Param == "Y") {
-        convolution(originalImage, &kernelSobelY[0][0],u,v);
+        return convolution(&kernelSobelY[0][0],u,v);
     } else if(Param == "All"){
-        copyX.convolution(originalImage, &kernelSobelX[0][0],u,v);
-        copyY.convolution(originalImage, &kernelSobelY[0][0],u,v);
-
-        for(int x = 0; x < getHeight(); x++){
-            for(int y = 0; y < getWidth(); y++) {
-                setPixel(x,y,getSobelGradient(copyX.getPixel(x,y),copyY.getPixel(x,y)));
-            }
-        }
+        return getSobelGradient(convolution(&kernelSobelX[0][0],u,v), convolution(&kernelSobelY[0][0],u,v));
     }
-    printf("Sobel OK!\n");
 }
 
-void MyQImage::gaussianFilter(const MyQImage &originalImage, double sigma)
+MyQImage MyQImage::getSobelGradient(const MyQImage &xImage, const MyQImage &yImage) const
 {
-    printf("Start: GaussianFilter (sigma = %lf)\n", sigma);
+    MyQImage resultImage(getWidth(), getHeight());
+
+    for(int x = 0; x < getHeight(); x++){
+        for(int y = 0; y < getWidth(); y++) {
+            resultImage.setPixel(
+                        x,
+                        y,
+                        sqrt(
+                                (
+                                xImage.getPixel(x,y) *
+                                xImage.getPixel(x,y)
+                                )
+                            +
+                                (
+                                yImage.getPixel(x,y) *
+                                yImage.getPixel(x,y)
+                                )
+                            )
+                        );
+
+        }
+    }
+
+    return resultImage;
+}
+
+MyQImage MyQImage::gaussianFilter(double sigma) const
+{
+    printf("GaussianFilter (sigma = %lf)\n", sigma);
 
     if(sigma != 0) {
         int widthHeight = 6 * qRound(sigma) + 1;
         double kernel[widthHeight][widthHeight];
-        getGaussianKernel(&kernel[0][0], widthHeight, widthHeight, sigma);
-        convolution(originalImage, &kernel[0][0], widthHeight, widthHeight);
-    }
+        double kernelRow[widthHeight];
+        double kernelColumn[widthHeight];
 
+        getGaussianKernel(&kernel[0][0], widthHeight, widthHeight, sigma);
+
+        for(int i = 0; i < widthHeight; i++){
+            kernelRow[i] = kernel[0][i];
+            kernelColumn[i] = kernel[i][0];
+        }
+
+        //return convolution(&kernel[0][0], widthHeight, widthHeight);
+        return convolution(&kernelRow[0], &kernelColumn[0], widthHeight, widthHeight);
+    }
+    return *this;
     printf("GaussianFilter OK!\n");
 }
 
@@ -313,9 +396,11 @@ void MyQImage::addNoise(int nPoint)
     }
 }
 
-void MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T)
+MyQImage MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T) const
 {
-    printf("Start: Moravec\n");
+    printf("Moravec\n");
+
+    MyQImage resultImage(getWidth(), getHeight());
 
     int maxX = getWidth(), maxY = getHeight();
 
@@ -346,8 +431,8 @@ void MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double
                     for(int u = u0; u < u1; u++){
                         for(int v = v0; v < v1; v++){
 
-                            color1 = getPixel(reflect(u, maxX), reflect(v, maxY));
-                            color2 = getPixel(reflect(u + dx, maxX), reflect(v + dy, maxY));
+                            color1 = getPixel(u, v);
+                            color2 = getPixel(u + dx, v + dy);
                             C += (color1 - color2) * (color1 - color2);
                         }
                     }
@@ -376,35 +461,36 @@ void MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double
             for(int px = -_px; px < _px; px++){
                 for(int py = -_py; py < _py; py++){
 
-                    if(S[x * maxX + y] < S[reflect(x + px, maxX) * getWidth() + reflect(y + py, maxY)]){
+                    if(S[getIndex(x , y, maxX, maxY)] < S[getIndex(x + px, y + py, maxX, maxY)]){
                         isMax = false;
                     }
                 }
             }
 
-            if(isMax && S[x * maxX + y] > T){
-                setPixel(x,y,EXTRA_PIXEL);
+            resultImage.setPixel(x, y, getPixel(x,y));
+
+            if(isMax && S[getIndex(x , y, maxX, maxY)] > T){
+                resultImage.setPixel(x,y,EXTRA_PIXEL);
             }
         }
     }
 
-    printf("Moravec OK!\n");
+    return resultImage;
 }
 
-void MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k)
+MyQImage MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k) const
 {
-    printf("Start: Harris\n");
+    printf("Harris\n");
+
+    MyQImage resultImage(getWidth(), getHeight());
 
     double maxX = getWidth();
     double maxY = getHeight();
 
     std::unique_ptr<double[]> S = std::make_unique<double[]>(maxX * maxY);   //значение оператора
 
-    MyQImage SobelX = *this;
-    MyQImage SobelY = *this;
-
-    SobelX.sobel("X", *this);
-    SobelY.sobel("Y", *this);
+    MyQImage SobelX = sobel("X");
+    MyQImage SobelY = sobel("Y");
 
     double a, b, c, Ix, Iy;
 
@@ -415,9 +501,9 @@ void MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k)
     int _px, _py;
     bool isMax;
 
-    MyQImage A = *this;
-    MyQImage B = *this;
-    MyQImage C = *this;
+    MyQImage A(getWidth(), getHeight());
+    MyQImage B(getWidth(), getHeight());
+    MyQImage C(getWidth(), getHeight());
 
     for(int x = 0; x < maxX; x++){
         for(int y = 0; y < maxY; y++){
@@ -429,8 +515,8 @@ void MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k)
             for(int dx = -_dx; dx < _dx; dx++){
                 for(int dy = -_dy; dy < _dy; dy++){
 
-                    Ix = SobelX.getPixel(reflect(x + dx, maxX), reflect(y + dy, maxY));
-                    Iy = SobelY.getPixel(reflect(x + dx, maxX), reflect(y + dy, maxY));
+                    Ix = SobelX.getPixel(x + dx, y + dy);
+                    Iy = SobelY.getPixel(x + dx, y + dy);
 
                     a += Ix * Ix;
                     b += Ix * Iy;
@@ -456,7 +542,7 @@ void MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k)
             trace = a + c;
             f = det - k * trace * trace;
 
-            S[x * maxY + y] = f;
+            S[getIndex(x , y, maxX, maxY)] = f;
         }
     }
 
@@ -469,38 +555,37 @@ void MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k)
 
             for(int px = -_px; px < _px; px++){
                 for(int py = -_py; py < _py; py++){
-
-                    if(S[x * maxX + y] < S[reflect(x + px, maxX) * maxY + reflect(y + py, maxY)]){
-
+                    if(S[getIndex(x , y, maxX, maxY)] < S[getIndex(x + px, y + py, maxX, maxY)]){
                         isMax = false;
-
                     }
                 }
             }
 
-            if(isMax && S[x * maxY + y] > T){
+            resultImage.setPixel(x, y, getPixel(x,y));
 
-                setPixel(x,y,EXTRA_PIXEL);
-
+            if(isMax && S[getIndex(x , y, maxX, maxY)] > T){
+                resultImage.setPixel(x,y,EXTRA_PIXEL);
             }
         }
     }
 
-    printf("Harris OK!\n");
+    return resultImage;
 
 }
 
-void MyQImage::convolution(const MyQImage& originalImage, const double* kernel, int u, int v)
+MyQImage MyQImage::convolution(const double *kernel, int u, int v) const
 {
+    MyQImage resultImage = *this;
+
     int x0, x1, y0, y1;
 
-    int xMax = originalImage.getWidth()-1, yMax = originalImage.getHeight()-1;
+    int xMax = getWidth()-1, yMax = getHeight()-1;
 
     double resultPixel = 0.0;
     int n = u * v - 1;
 
-    for(int i = 0; i < originalImage.getWidth(); i++){
-        for(int j = 0; j < originalImage.getHeight(); j++) {
+    for(int i = 0; i < getWidth(); i++){
+        for(int j = 0; j < getHeight(); j++) {
             x0 = i - (u / 2);
             x1 = i + (u / 2);
             y0 = j - (v / 2);
@@ -510,20 +595,25 @@ void MyQImage::convolution(const MyQImage& originalImage, const double* kernel, 
 
             for(int y = y0 ; y <= y1; y++) {
                 for(int x = x0; x <= x1; x++, n--){
-                    resultPixel += (kernel[n] * originalImage.getPixel(reflect(x, xMax),reflect(y, yMax)));
+                    resultPixel += (kernel[n] * getPixel(reflect(x, xMax),reflect(y, yMax)));
                 }
             }
 
-            setPixel(i,j,resultPixel);
+            resultImage.setPixel(i,j,resultPixel);
 
         }
     }
+
+    return resultImage;
 }
 
-void MyQImage::convolution(const MyQImage &originalImage, const double *row, const double *column, int u, int v)
+MyQImage MyQImage::convolution(const double *row, const double *column, int u, int v) const
 {
-    convolution(originalImage, row, u, 1);
-    convolution(*this, column, 1, v);
+    MyQImage resultImage1(getWidth(), getHeight());
+    MyQImage resultImage2(getWidth(), getHeight());
+    resultImage1 = convolution(row, u, 1);
+    resultImage2 = resultImage1.convolution(column, 1, v);
+    return resultImage2;
 }
 
 void MyQImage::saveImage(QString file)
@@ -545,8 +635,10 @@ void MyQImage::saveImage(QString file)
     for(int x = 0; x < getWidth()-1; x++){
         for(int y = 0; y < getHeight()-1; y++){
 
-            if(max_ < getPixel(x,y) && getPixel(x,y) != EXTRA_PIXEL) max_ = getPixel(x,y);
-            if(min_ > getPixel(x,y) && getPixel(x,y) != EXTRA_PIXEL) min_ = getPixel(x,y);
+            if(max_ < getPixel(x,y) && getPixel(x,y) != EXTRA_PIXEL)
+                max_ = getPixel(x,y);
+            if(min_ > getPixel(x,y) && getPixel(x,y) != EXTRA_PIXEL)
+                min_ = getPixel(x,y);
         }
     }
 

@@ -5,17 +5,16 @@
 
 class PyramidOctave
 {
-public:
-    std::vector<PyramidLevel> levels;   //уровни в данной октаве
 private:
+    std::vector<PyramidLevel> levels;   //уровни в данной октаве
     int n_;                             //номер уровня
 public:
     PyramidOctave(const int numberOctave);
     int getNumberOctave() const;
-    std::vector<PyramidLevel> getLevels() const;
     void addLevel(PyramidLevel& level);
     int nLevels() const;
-
+    MyQImage getLevelImage(int i) const;
+    int getLevelNumber(int i) const;
 
 };
 

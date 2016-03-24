@@ -4,7 +4,7 @@
 
 class PyramidLevel
 {
-public:
+private:
     MyQImage image_;        //изображение
     double localSigma_;     //локальноая сигма для данного изображения
     double globalSigma_;    //глобальная сигма для данного уровня

@@ -10,11 +10,6 @@ int PyramidOctave::getNumberOctave() const
     return n_;
 }
 
-std::vector<PyramidLevel> PyramidOctave::getLevels() const
-{
-    return levels;
-}
-
 void PyramidOctave::addLevel(PyramidLevel& level)
 {
     levels.push_back(level);
@@ -23,4 +18,14 @@ void PyramidOctave::addLevel(PyramidLevel& level)
 int PyramidOctave::nLevels() const
 {
     return levels.size();
+}
+
+MyQImage PyramidOctave::getLevelImage(int i) const
+{
+    return levels[i].getImage();
+}
+
+int PyramidOctave::getLevelNumber(int i) const
+{
+    return levels[i].getLevelNumber();
 }

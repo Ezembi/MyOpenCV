@@ -26,6 +26,11 @@ private:
     double minOrigial_ = 0;
     double maxOrigial_ = 256;
 
+    MyQImage getSobelGradient(
+            const MyQImage& xImage,
+            const MyQImage& yImage
+            ) const;                                    //получить значение градиента собеля
+
 private:
 
     void setWidth(int width);                           //получить ширину изображения
@@ -44,7 +49,13 @@ public:
             );                                          //создать изображение другого масштаба
 
     MyQImage(const MyQImage& data);                     //конструктор копирования
+
+    MyQImage(MyQImage &&image);
+
     ~MyQImage();
+
+    const MyQImage& operator=(MyQImage &&image);
+    const MyQImage& operator=(const MyQImage &image);
 
     int getNormalNumber(double number) const;           //получить нормализованное число
     double getMonoColor(QRgb color);                    //получить моно цвет пикселя
@@ -65,49 +76,45 @@ public:
     void swapPixel(int x1, int y1, int x2, int y2);     //поменять пиксели местами
     void horizontalSwap();                              //отобразить по горизонтали
     void verticalSwap();                                //отобразить по вертикали
-    void blur(const MyQImage& originalImage);           //размытие
-    void sharpness(const MyQImage& originalImage);      //резкость
-    void sobel(
-            QString Param,
-            const MyQImage& originalImage
-            );                                          //собель
-    void gaussianFilter(
-            const MyQImage& originalImage,
+    MyQImage blur() const;                              //размытие
+    MyQImage sharpness() const;                         //резкость
+    MyQImage sobel(QString Param) const;                //собель
+
+    MyQImage gaussianFilter(
             double sigma
-            );                                          //свёртка Гаусом
+            ) const;                                    //свёртка Гаусом
+
     void addNoise(int nPoint);                          //добавление шума
 
-    void Moravec(
+    MyQImage Moravec(
             int _u,                                     //координаты в окне
             int _v,                                     //координаты в окне
             int _dx,                                    //сдвига окна по Х
             int _dy,                                    //сдвига окна по У
             int point_count,                            //кол-во интересных точек
             double T                                    //пороговое значение точки
-            );                                          //оператор Моравека
+            ) const;                                          //оператор Моравека
 
-    void Harris(
+    MyQImage Harris(
             int _dx,                                    //сдвига окна по Х
             int _dy,                                    //сдвига окна по У
             int point_count,                            //кол-во интересных точек
-            double T,                                    //пороговое значение точки
+            double T,                                   //пороговое значение точки
             double k
-            );
+            ) const;
 
-    void convolution(
-            const MyQImage& originalImage,
+    MyQImage convolution(
             const double* kernel,
             int u,
             int v
-            );                                          //свёртка
+            ) const;                                          //свёртка
 
-    void convolution(
-            const MyQImage& originalImage,
+    MyQImage convolution(
             const double* row,
             const double* column,
             int u,
             int v
-            );                                          //сепарабельная свёртка
+            ) const;                                          //сепарабельная свёртка
 
     void saveImage(QString file);                       //сохранение изображение
 };
