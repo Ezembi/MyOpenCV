@@ -11,9 +11,9 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
     double k = pow(2.0, 1.0 / numLevel);
 
     double sigma = sigma0;                                  //сигма предыдущего уровня (глобальная)
-    double levelSigma;                                      //сигма текущего уровня (глобальная)
+   // double levelSigma;                                      //сигма текущего уровня (глобальная)
     double deltaSigma;                                      //сигма для гауса (локальная)
-    deltaSigma = sqrt(sigma * sigma - 0.5 * 0.5);
+    deltaSigma = sqrt(sigma * sigma - 0.8 * 0.8);
 
     tmpImage = Image.gaussianFilter(deltaSigma);            //фильтруем гаусом до sigma 0
 
@@ -22,17 +22,19 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
         sigma = sigma0;
         PyramidOctave octaves(i);
 
-        for(double finish = 0; finish <= numLevel; finish++){
+        for(double level = 0; level <= numLevel; level++){
 
-            levelSigma = sigma * k;
+            double levelSigma = sigma0 * pow(k, level);
+
             deltaSigma = sqrt(levelSigma * levelSigma - sigma * sigma);
 
             levelImage = tmpImage.gaussianFilter(deltaSigma);
 
-            PyramidLevel level(levelImage, deltaSigma, levelSigma, finish);
-            octaves.addLevel(level);
+            PyramidLevel Level(levelImage, deltaSigma, levelSigma, level);
+            octaves.addLevel(Level);
 
             tmpImage.copy(levelImage);
+            //tmpImage = levelImage;
 
             sigma = levelSigma;
         }
@@ -40,6 +42,7 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
         addOctrve(octaves);
 
         tmpImage.resizeAndCopy(levelImage, levelImage.getWidth() / 2, levelImage.getHeight() / 2);
+        //levelImage = tmpImage;
         levelImage.copy(tmpImage);
     }
 

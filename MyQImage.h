@@ -3,11 +3,29 @@
 #include <GlobalNames.h>
 #include <time.h>
 #include <QImage>
+#include <QPainter>
 #include <QRgb>
 #include <QString>
 #include <memory>
 #include <algorithm>
 #include <assistant.h>
+
+struct InterestingPoint
+{
+    int x_, y_;
+    double value_;
+    InterestingPoint(int x, int y, double value)
+    {
+        x_ = x;
+        y_ = y;
+        value_ = value;
+    }
+
+    void print(){
+        printf("x = %d, y = %d, value = %lf\n", x_, y_, value_);
+    }
+
+};
 
 class MyQImage
 {
@@ -31,11 +49,19 @@ private:
             const MyQImage& yImage
             ) const;                                    //получить значение градиента собеля
 
+
 private:
 
     void setWidth(int width);                           //получить ширину изображения
     void setHeight(int height);                         //получить высоту изображения
 
+    std::vector<InterestingPoint> ANMS(
+            std::vector<InterestingPoint> points,
+            const double *S,
+            int width,
+            int height,
+            int nPoint
+            ) const;                                          //Adaptive non-maximum suppression
 public:
     void loadImage(QString file);                       //загрузка изображения
 
@@ -64,7 +90,7 @@ public:
     QImage::Format getFormat() const;
     void setPixel(int x, int y, double color);          //задаёт цвет пикселя
     double getPixel(int x, int y) const;                //получить моно цвет
-    QRgb getColorPixel(int x, int y);                   //получить цветной пиксель (нормализация)
+    QRgb getColorPixel(int x, int y) const;                   //получить цветной пиксель (нормализация)
     void copy(const MyQImage& imageForCopy);            //скопировать изображение в данное
     void resizeAndCopy(
             const MyQImage& imageForCopy,
@@ -78,7 +104,7 @@ public:
     void verticalSwap();                                //отобразить по вертикали
     MyQImage blur() const;                              //размытие
     MyQImage sharpness() const;                         //резкость
-    MyQImage sobel(QString Param) const;                //собель
+    MyQImage sobel(QString Param) const;                //собель (!ГРАДИЕНТ!)
 
     MyQImage gaussianFilter(
             double sigma
@@ -86,7 +112,7 @@ public:
 
     void addNoise(int nPoint);                          //добавление шума
 
-    MyQImage Moravec(
+    std::vector<InterestingPoint> Moravec(
             int _u,                                     //координаты в окне
             int _v,                                     //координаты в окне
             int _dx,                                    //сдвига окна по Х
@@ -95,7 +121,7 @@ public:
             double T                                    //пороговое значение точки
             ) const;                                          //оператор Моравека
 
-    MyQImage Harris(
+    std::vector<InterestingPoint> Harris(
             int _dx,                                    //сдвига окна по Х
             int _dy,                                    //сдвига окна по У
             int point_count,                            //кол-во интересных точек
@@ -107,16 +133,20 @@ public:
             const double* kernel,
             int u,
             int v
-            ) const;                                          //свёртка
+            ) const;                                    //свёртка
 
     MyQImage convolution(
             const double* row,
             const double* column,
             int u,
             int v
-            ) const;                                          //сепарабельная свёртка
+            ) const;                                    //сепарабельная свёртка
 
     void saveImage(QString file);                       //сохранение изображение
+    void saveImage(
+            QString file,
+            std::vector<InterestingPoint> points
+            );                                          //сохранение изображение с интересными очками
 };
 
 #endif // MYQIMAGE_H

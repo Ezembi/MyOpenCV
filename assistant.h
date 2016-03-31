@@ -32,37 +32,7 @@ void static printKernel(double* kernel, int width, int height)
     }
 }
 
-//Adaptive non-maximum suppression
-int static ANMS(const double* arrayInterestingPoint, int width, int height, int nPoint, double T)
-{
-    int nLocal;
-    int radius = 0;
-    bool isMax;
 
-    do{
-        radius++;
-        nLocal = 0;
-
-        for(int x = 0; x < width; x++){
-            for(int y = 0; y < height; y++){
-                isMax = true;
-                for(int px = -radius; px < radius; px++){
-                    for(int py = -radius; py < radius; py++){
-                        if(arrayInterestingPoint[getIndex(x, y, width, height)] < arrayInterestingPoint[getIndex(reflect(x + px, width), reflect(y + py, width), width, height)]){
-                            isMax = false;
-                        }
-                    }
-                }
-
-                if(isMax && arrayInterestingPoint[x * height + y] > T){
-                    nLocal++;
-                }
-            }
-        }
-    }while(nLocal > nPoint);
-
-    return radius;
-}
 
 //заполнения ядра Гауса
 void static getGaussianKernel(double* kernel, int width, int height, double sigma)

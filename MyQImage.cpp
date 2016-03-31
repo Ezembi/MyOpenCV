@@ -137,7 +137,6 @@ MyQImage::~MyQImage()
 
 const MyQImage &MyQImage::operator=(MyQImage &&image)
 {
-    //fixme переделать
     Image_ = std::move(image.Image_);
 
     height_ = image.height_;
@@ -150,6 +149,9 @@ const MyQImage &MyQImage::operator=(MyQImage &&image)
 
     minOrigial_ = image.minOrigial_;
     maxOrigial_ = image.maxOrigial_;
+
+    printf("Operator = succesfully!\n");
+    return *this;
 }
 
 const MyQImage &MyQImage::operator=(const MyQImage &image)
@@ -210,18 +212,12 @@ double MyQImage::getPixel(int x, int y) const
     return Image_[getIndex(x , y, getWidth(), getHeight())];
 }
 
-QRgb MyQImage::getColorPixel(int x, int y)
+QRgb MyQImage::getColorPixel(int x, int y) const
 {
     double color = getPixel(x,y);
 
-    if(color != EXTRA_PIXEL){
-        color = ((color - min_) / (max_ - min_)) * (maxOrigial_ - minOrigial_);
-        return qRgb(color, color, color);
-    } else {
-        nInterestingPoint_++;
-        printf("*");
-        return qRgb(255, 0, 0);
-    }
+    color = ((color - min_) / (max_ - min_)) * (maxOrigial_ - minOrigial_);
+    return qRgb(color, color, color);
 
 }
 
@@ -334,12 +330,12 @@ MyQImage MyQImage::getSobelGradient(const MyQImage &xImage, const MyQImage &yIma
                         x,
                         y,
                         sqrt(
-                                (
+                            (
                                 xImage.getPixel(x,y) *
                                 xImage.getPixel(x,y)
                                 )
                             +
-                                (
+                            (
                                 yImage.getPixel(x,y) *
                                 yImage.getPixel(x,y)
                                 )
@@ -386,8 +382,8 @@ void MyQImage::addNoise(int nPoint)
 
     for(int x = 0; x < getWidth()-1; x++){
         for(int y = 0; y < getHeight()-1; y++){
-            if(max < getPixel(x,y) && getPixel(x,y) != EXTRA_PIXEL) max = getPixel(x,y);
-            if(min > getPixel(x,y) && getPixel(x,y) != EXTRA_PIXEL) min = getPixel(x,y);
+            if(max < getPixel(x,y)) max = getPixel(x,y);
+            if(min > getPixel(x,y)) min = getPixel(x,y);
         }
     }
 
@@ -396,20 +392,51 @@ void MyQImage::addNoise(int nPoint)
     }
 }
 
-MyQImage MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T) const
+std::vector<InterestingPoint> MyQImage::ANMS(std::vector<InterestingPoint> points, const double* S, int width, int height, int nPoint) const
 {
-    printf("Moravec\n");
+    printf("Start: ANMS\n");
+    int radius = 0;
+    bool isMax;
 
-    MyQImage resultImage(getWidth(), getHeight());
+    do{
+        radius++;
+
+        for(int x = 0; x < points.size(); x++){
+            isMax = true;
+            for(int px = -radius; px < radius; px++){
+                for(int py = -radius; py < radius; py++){
+                    if(points[x].value_ < S[getIndex(points[x].x_ + px, points[x].y_ + py, width, height)]){
+                        isMax = false;
+                    }
+                }
+            }
+
+            if(isMax){
+            } else {
+                points.erase(points.begin() + x);
+            }
+
+        }
+    }while(points.size() > nPoint);
+
+    printf("ANMS OK\n");
+    return points;
+}
+
+std::vector<InterestingPoint> MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T) const
+{
+    printf("Start: Moravec\n");
+
+    std::vector<InterestingPoint> points;
 
     int maxX = getWidth(), maxY = getHeight();
 
     std::unique_ptr<double[]> S = std::make_unique<double[]>(maxX * maxY);   //значение оператора
 
-    int u0;
-    int u1;
-    int v0;
-    int v1;
+    const int u0 = - _u / 2;
+    const int u1 = + _u / 2;
+    const int v0 = - _v / 2;
+    const int v1 = + _v / 2;
 
     double minC;
     double C;
@@ -417,22 +444,20 @@ MyQImage MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, do
 
     for(int x = 0; x < maxX; x++){
         for(int y = 0; y < maxY; y++){
-            u0 = x - _u / 2;
-            u1 = x + _u / 2;
-            v0 = y - _v / 2;
-            v1 = y + _v / 2;
 
             for(int dx = -_dx; dx < _dx; dx++){
                 for(int dy = -_dy; dy < _dy; dy++){
 
+                    if(dx == 0 && dy == 0)
+                        continue;
                     C = 0;
-                    minC = -1;
+                    minC = 999999.0;
 
                     for(int u = u0; u < u1; u++){
                         for(int v = v0; v < v1; v++){
 
-                            color1 = getPixel(u, v);
-                            color2 = getPixel(u + dx, v + dy);
+                            color1 = getPixel(x + u, y + v);
+                            color2 = getPixel(x + u + dx, y + v + dy);
                             C += (color1 - color2) * (color1 - color2);
                         }
                     }
@@ -443,15 +468,13 @@ MyQImage MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, do
                 }
             }
 
-            S[x * maxX + y] = C;
+            S[getIndex(x , y, maxX, maxY)] = C;
         }
     }
 
     bool isMax;
 
-    int _px, _py;
-
-    _px = _py = ANMS(&S[0], maxX, maxY, point_count, T);
+    int _px = 1, _py = 1;
 
     for(int x = 0; x < maxX; x++){
         for(int y = 0; y < maxY; y++){
@@ -467,20 +490,24 @@ MyQImage MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, do
                 }
             }
 
-            resultImage.setPixel(x, y, getPixel(x,y));
-
             if(isMax && S[getIndex(x , y, maxX, maxY)] > T){
-                resultImage.setPixel(x,y,EXTRA_PIXEL);
+                InterestingPoint point(x, y, S[getIndex(x , y, maxX, maxY)]);
+                points.push_back(point);
             }
         }
     }
 
-    return resultImage;
+    printf("Moravec OK\n");
+
+    return ANMS(points, &S[0], maxX, maxY, point_count);
+    //return points;
 }
 
-MyQImage MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k) const
+std::vector<InterestingPoint> MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k) const
 {
-    printf("Harris\n");
+    printf("Start: Harris\n");
+
+    std::vector<InterestingPoint> points;
 
     MyQImage resultImage(getWidth(), getHeight());
 
@@ -498,7 +525,7 @@ MyQImage MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k)
     double trace;
     double f;
 
-    int _px, _py;
+    int _px = 1, _py = 1;
     bool isMax;
 
     MyQImage A(getWidth(), getHeight());
@@ -546,8 +573,6 @@ MyQImage MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k)
         }
     }
 
-    _px = _py = ANMS(&S[0], maxX, maxY, point_count, T);
-
     for(int x = 0; x < maxX; x++){
         for(int y = 0; y < maxY; y++){
 
@@ -564,12 +589,14 @@ MyQImage MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k)
             resultImage.setPixel(x, y, getPixel(x,y));
 
             if(isMax && S[getIndex(x , y, maxX, maxY)] > T){
-                resultImage.setPixel(x,y,EXTRA_PIXEL);
+                InterestingPoint point(x, y, S[getIndex(x , y, maxX, maxY)]);
+                points.push_back(point);
             }
         }
     }
 
-    return resultImage;
+    printf("Harris OK\n");
+    return ANMS(points, &S[0], maxX, maxY, point_count);
 
 }
 
@@ -635,9 +662,9 @@ void MyQImage::saveImage(QString file)
     for(int x = 0; x < getWidth()-1; x++){
         for(int y = 0; y < getHeight()-1; y++){
 
-            if(max_ < getPixel(x,y) && getPixel(x,y) != EXTRA_PIXEL)
+            if(max_ < getPixel(x,y))
                 max_ = getPixel(x,y);
-            if(min_ > getPixel(x,y) && getPixel(x,y) != EXTRA_PIXEL)
+            if(min_ > getPixel(x,y))
                 min_ = getPixel(x,y);
         }
     }
@@ -647,6 +674,47 @@ void MyQImage::saveImage(QString file)
             Picture.setPixel(x, y, getColorPixel(x,y));
         }
     }
+
+    Picture.save(file);
+
+    printf("\nSave file OK! (%d x %d)\nCount interesting point = %d\nmin = %lf; max = %lf \nminOriginal = %lf; maxOriginal = %lf\n",getWidth(), getHeight(),nInterestingPoint_,min_, max_, minOrigial_, maxOrigial_);
+}
+
+void MyQImage::saveImage(QString file, std::vector<InterestingPoint> points)
+{
+    QImage Picture(getWidth(),getHeight(),format_);
+
+    nInterestingPoint_ = points.size();
+
+    max_ = getPixel(0,0);
+    min_ = getPixel(0,0);
+
+    for(int x = 0; x < getWidth()-1; x++){
+        for(int y = 0; y < getHeight()-1; y++){
+
+            if(max_ < getPixel(x,y))
+                max_ = getPixel(x,y);
+            if(min_ > getPixel(x,y))
+                min_ = getPixel(x,y);
+        }
+    }
+
+    for(int y = 0; y < getHeight(); y++){
+        for(int x = 0; x < getWidth(); x++){
+            Picture.setPixel(x, y, getColorPixel(x,y));
+        }
+    }
+
+    QPainter painter;
+    painter.begin(&Picture);
+    painter.drawImage(QPoint(0,0), Picture);
+    painter.setPen(Qt::red);
+
+    for(int i = 0; i < points.size(); i++){
+        painter.drawRect(points[i].x_ - 1, points[i].y_ - 1, 2, 2);
+    }
+
+    painter.end();
 
     Picture.save(file);
 

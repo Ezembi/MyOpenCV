@@ -5,9 +5,9 @@
 class Pyramid
 {
 private:
-    std::vector<PyramidOctave> octaves;     //октавы
-    double k;                                  //2^(1/s)
-    double sigma0;                             //нулевая сигма
+    std::vector<PyramidOctave> octaves;         //октавы
+    double k;                                   //2^(1/s)
+    double sigma0;                              //нулевая сигма
 
 public:
     Pyramid(const MyQImage& resultImage, const double sigma0 , const int octave, const double numLevel);
