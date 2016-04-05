@@ -11,7 +11,6 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
     double k = pow(2.0, 1.0 / numLevel);
 
     double sigma = sigma0;                                  //сигма предыдущего уровня (глобальная)
-   // double levelSigma;                                      //сигма текущего уровня (глобальная)
     double deltaSigma;                                      //сигма для гауса (локальная)
     deltaSigma = sqrt(sigma * sigma - 0.8 * 0.8);
 
@@ -24,7 +23,7 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
 
         for(double level = 0; level <= numLevel; level++){
 
-            double levelSigma = sigma0 * pow(k, level);
+            double levelSigma = sigma0 * pow(k, level);     //сигма текущего уровня (глобальная)
 
             deltaSigma = sqrt(levelSigma * levelSigma - sigma * sigma);
 

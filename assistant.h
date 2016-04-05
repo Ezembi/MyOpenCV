@@ -21,6 +21,11 @@ int static getIndex(int x, int y, int width, int height){
     return reflect(x, width) * height + reflect(y, height);
 }
 
+//расстояние между точкими
+double static pointDistance(double x0, double x1, double y0, double y1){
+    return sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+}
+
 //отобразить ядро всёртки
 void static printKernel(double* kernel, int width, int height)
 {
@@ -31,8 +36,6 @@ void static printKernel(double* kernel, int width, int height)
         printf("\n");
     }
 }
-
-
 
 //заполнения ядра Гауса
 void static getGaussianKernel(double* kernel, int width, int height, double sigma)
@@ -52,6 +55,8 @@ void static getGaussianKernel(double* kernel, int width, int height, double sigm
         }
     }
 }
+
+
 
 #endif // ASSISTANT
 

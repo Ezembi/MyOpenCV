@@ -13,7 +13,9 @@ SOURCES += main.cpp \
     MyQImage.cpp \
     PyramidLevel.cpp \
     PyramidOctave.cpp \
-    Pyramid.cpp
+    Pyramid.cpp \
+    Descriptor.cpp \
+    DescriptorFactory.cpp
 
 HEADERS += \
     MyQImage.h \
@@ -21,4 +23,6 @@ HEADERS += \
     GlobalNames.h \
     PyramidLevel.h \
     PyramidOctave.h \
-    Pyramid.h
+    Pyramid.h \
+    Descriptor.h \
+    DescriptorFactory.h

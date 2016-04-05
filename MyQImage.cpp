@@ -392,7 +392,7 @@ void MyQImage::addNoise(int nPoint)
     }
 }
 
-std::vector<InterestingPoint> MyQImage::ANMS(std::vector<InterestingPoint> points, const double* S, int width, int height, int nPoint) const
+std::vector<InterestingPoint> MyQImage::ANMS(std::vector<InterestingPoint> points, int nPoint)
 {
     printf("Start: ANMS\n");
     int radius = 0;
@@ -402,20 +402,21 @@ std::vector<InterestingPoint> MyQImage::ANMS(std::vector<InterestingPoint> point
         radius++;
 
         for(int x = 0; x < points.size(); x++){
-            isMax = true;
-            for(int px = -radius; px < radius; px++){
-                for(int py = -radius; py < radius; py++){
-                    if(points[x].value_ < S[getIndex(points[x].x_ + px, points[x].y_ + py, width, height)]){
+            for(int y = 0; y < points.size(); y++){
+                isMax = true;
+                if(x != y){
+                    if( points[x].distance(points[y]) < radius &&
+                            points[x].value_ < points[y].value_ ) {
+
                         isMax = false;
+                    }
+
+                    if(isMax){
+                    } else {
+                        points.erase(points.begin() + x);
                     }
                 }
             }
-
-            if(isMax){
-            } else {
-                points.erase(points.begin() + x);
-            }
-
         }
     }while(points.size() > nPoint);
 
@@ -423,7 +424,7 @@ std::vector<InterestingPoint> MyQImage::ANMS(std::vector<InterestingPoint> point
     return points;
 }
 
-std::vector<InterestingPoint> MyQImage::Moravec(int _u, int _v, int _dx, int _dy, int point_count, double T) const
+std::vector<InterestingPoint> MyQImage::Moravec(int _u, int _v, int _dx, int _dy, double T) const
 {
     printf("Start: Moravec\n");
 
@@ -479,31 +480,33 @@ std::vector<InterestingPoint> MyQImage::Moravec(int _u, int _v, int _dx, int _dy
     for(int x = 0; x < maxX; x++){
         for(int y = 0; y < maxY; y++){
 
-            isMax = true;
+            if(S[getIndex(x , y, maxX, maxY)] > T){
 
-            for(int px = -_px; px < _px; px++){
-                for(int py = -_py; py < _py; py++){
+                isMax = true;
 
-                    if(S[getIndex(x , y, maxX, maxY)] < S[getIndex(x + px, y + py, maxX, maxY)]){
-                        isMax = false;
+                for(int px = -_px; px < _px && isMax; px++){
+                    for(int py = -_py; py < _py && isMax; py++){
+
+                        if(S[getIndex(x , y, maxX, maxY)] < S[getIndex(x + px, y + py, maxX, maxY)]){
+                            isMax = false;
+                        }
                     }
                 }
-            }
 
-            if(isMax && S[getIndex(x , y, maxX, maxY)] > T){
-                InterestingPoint point(x, y, S[getIndex(x , y, maxX, maxY)]);
-                points.push_back(point);
+                if(isMax){
+                    InterestingPoint point(x, y, S[getIndex(x , y, maxX, maxY)]);
+                    points.push_back(point);
+                }
             }
         }
     }
 
     printf("Moravec OK\n");
 
-    return ANMS(points, &S[0], maxX, maxY, point_count);
-    //return points;
+    return points;
 }
 
-std::vector<InterestingPoint> MyQImage::Harris(int _dx, int _dy, int point_count, double T, double k) const
+std::vector<InterestingPoint> MyQImage::Harris(int _dx, int _dy, double T, double k) const
 {
     printf("Start: Harris\n");
 
@@ -576,27 +579,30 @@ std::vector<InterestingPoint> MyQImage::Harris(int _dx, int _dy, int point_count
     for(int x = 0; x < maxX; x++){
         for(int y = 0; y < maxY; y++){
 
-            isMax = true;
+            if(S[getIndex(x , y, maxX, maxY)] > T){
 
-            for(int px = -_px; px < _px; px++){
-                for(int py = -_py; py < _py; py++){
-                    if(S[getIndex(x , y, maxX, maxY)] < S[getIndex(x + px, y + py, maxX, maxY)]){
-                        isMax = false;
+                isMax = true;
+
+                for(int px = -_px; px < _px && isMax; px++){
+                    for(int py = -_py; py < _py && isMax; py++){
+                        if(S[getIndex(x , y, maxX, maxY)] < S[getIndex(x + px, y + py, maxX, maxY)]){
+                            isMax = false;
+                        }
                     }
                 }
-            }
 
-            resultImage.setPixel(x, y, getPixel(x,y));
+                resultImage.setPixel(x, y, getPixel(x,y));
 
-            if(isMax && S[getIndex(x , y, maxX, maxY)] > T){
-                InterestingPoint point(x, y, S[getIndex(x , y, maxX, maxY)]);
-                points.push_back(point);
+                if(isMax){
+                    InterestingPoint point(x, y, S[getIndex(x , y, maxX, maxY)]);
+                    points.push_back(point);
+                }
             }
         }
     }
 
     printf("Harris OK\n");
-    return ANMS(points, &S[0], maxX, maxY, point_count);
+    return points;
 
 }
 
@@ -641,6 +647,18 @@ MyQImage MyQImage::convolution(const double *row, const double *column, int u, i
     resultImage1 = convolution(row, u, 1);
     resultImage2 = resultImage1.convolution(column, 1, v);
     return resultImage2;
+}
+
+QImage MyQImage::getQImage()
+{
+    QImage Picture(getWidth(),getHeight(),format_);
+    for(int y = 0; y < getHeight(); y++){
+        for(int x = 0; x < getWidth(); x++){
+            Picture.setPixel(x, y, getColorPixel(x,y));
+        }
+    }
+
+    return Picture;
 }
 
 void MyQImage::saveImage(QString file)

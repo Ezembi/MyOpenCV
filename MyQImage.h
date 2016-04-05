@@ -14,6 +14,12 @@ struct InterestingPoint
 {
     int x_, y_;
     double value_;
+
+    InterestingPoint()
+    {
+
+    }
+
     InterestingPoint(int x, int y, double value)
     {
         x_ = x;
@@ -23,6 +29,10 @@ struct InterestingPoint
 
     void print(){
         printf("x = %d, y = %d, value = %lf\n", x_, y_, value_);
+    }
+
+    double distance(InterestingPoint p){
+        return sqrt((p.x_ - x_) * (p.x_ - x_) + (p.y_ - y_) * (p.y_ - y_));
     }
 
 };
@@ -55,13 +65,7 @@ private:
     void setWidth(int width);                           //получить ширину изображения
     void setHeight(int height);                         //получить высоту изображения
 
-    std::vector<InterestingPoint> ANMS(
-            std::vector<InterestingPoint> points,
-            const double *S,
-            int width,
-            int height,
-            int nPoint
-            ) const;                                          //Adaptive non-maximum suppression
+
 public:
     void loadImage(QString file);                       //загрузка изображения
 
@@ -117,17 +121,20 @@ public:
             int _v,                                     //координаты в окне
             int _dx,                                    //сдвига окна по Х
             int _dy,                                    //сдвига окна по У
-            int point_count,                            //кол-во интересных точек
             double T                                    //пороговое значение точки
             ) const;                                          //оператор Моравека
 
     std::vector<InterestingPoint> Harris(
             int _dx,                                    //сдвига окна по Х
             int _dy,                                    //сдвига окна по У
-            int point_count,                            //кол-во интересных точек
             double T,                                   //пороговое значение точки
             double k
             ) const;
+
+    static std::vector<InterestingPoint> ANMS(
+            std::vector<InterestingPoint> points,
+            int nPoint
+            );                                          //Adaptive non-maximum suppression
 
     MyQImage convolution(
             const double* kernel,
@@ -141,6 +148,8 @@ public:
             int u,
             int v
             ) const;                                    //сепарабельная свёртка
+
+    QImage getQImage();
 
     void saveImage(QString file);                       //сохранение изображение
     void saveImage(

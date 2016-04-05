@@ -1,6 +1,10 @@
 #ifndef DEFINES
 #define DEFINES
 
+/*
+ * ядра свёрток
+ */
+
 double const kernelBlur[3][3] = {
     {1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0},
     {1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0},
@@ -24,6 +28,16 @@ double const kernelSobelY[3][3] = {
     { 0.0, 0.0, 0.0},
     { 1.0, 2.0, 1.0}
 };
+
+
+/*
+ * дескрипторы
+ */
+
+int const nBin = 8;                    //кол-во корзин для одной части дескриптора
+int const nGistBin = 4;                //кол-во гистограмм для дескриптора
+int const wGist = 4;                   //ширина гистограммы
+int const hGist = 4;                   //высота гистограммы
 
 #endif // DEFINES
 
