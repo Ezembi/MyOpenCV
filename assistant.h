@@ -1,7 +1,38 @@
 #include <qmath.h>
 #include <QtGlobal>
+
 #ifndef ASSISTANT
 #define ASSISTANT
+
+#include<vector>
+
+//интересные точки
+struct InterestingPoint
+{
+    int x_, y_;
+    double value_;
+
+    InterestingPoint()
+    {
+
+    }
+
+    InterestingPoint(int x, int y, double value)
+    {
+        x_ = x;
+        y_ = y;
+        value_ = value;
+    }
+
+    void print(){
+        printf("x = %d, y = %d, value = %lf\n", x_, y_, value_);
+    }
+
+    double distance(InterestingPoint p){
+        return sqrt((p.x_ - x_) * (p.x_ - x_) + (p.y_ - y_) * (p.y_ - y_));
+    }
+
+};
 
 //обработка краевых эффектов (отражение коэф зеркально от 0 и от ширины / высоты)
 int static reflect(int x, int maxX)
@@ -54,6 +85,40 @@ void static getGaussianKernel(double* kernel, int width, int height, double sigm
             kernel[getIndex(qRound(xKernel), qRound(yKernel), width, height)] = pow(M_E, numPow) * (1.0 / (2.0 * M_PI * (sigma * sigma)));
         }
     }
+}
+
+//Adaptive non-maximum suppression
+std::vector<InterestingPoint> static ANMS(
+        std::vector<InterestingPoint> points,
+        int nPoint){
+    printf("Start: ANMS\n");
+    int radius = 0;
+    bool isMax;
+
+    do{
+        radius++;
+
+        for(int x = 0; x < points.size(); x++){
+            for(int y = 0; y < points.size(); y++){
+                isMax = true;
+                if(x != y){
+                    if( points[x].distance(points[y]) < radius &&
+                            points[x].value_ < points[y].value_ ) {
+
+                        isMax = false;
+                    }
+
+                    if(isMax){
+                    } else {
+                        points.erase(points.begin() + x);
+                    }
+                }
+            }
+        }
+    }while(points.size() > nPoint);
+
+    printf("ANMS OK\n");
+    return points;
 }
 
 

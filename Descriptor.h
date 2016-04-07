@@ -16,10 +16,10 @@ public:
 
     InterestingPoint getInterestingPoint() const;
 
-    double getDistanse(const Descriptor& descriptor) const;
+    double getDistance(const Descriptor& descriptor) const;
 
     void normalize();
-    double detNormalNumber();
+    double getVectorSize();
 };
 
 #endif // DESCRIPTOR_H

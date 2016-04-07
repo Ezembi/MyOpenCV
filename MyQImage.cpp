@@ -392,38 +392,6 @@ void MyQImage::addNoise(int nPoint)
     }
 }
 
-std::vector<InterestingPoint> MyQImage::ANMS(std::vector<InterestingPoint> points, int nPoint)
-{
-    printf("Start: ANMS\n");
-    int radius = 0;
-    bool isMax;
-
-    do{
-        radius++;
-
-        for(int x = 0; x < points.size(); x++){
-            for(int y = 0; y < points.size(); y++){
-                isMax = true;
-                if(x != y){
-                    if( points[x].distance(points[y]) < radius &&
-                            points[x].value_ < points[y].value_ ) {
-
-                        isMax = false;
-                    }
-
-                    if(isMax){
-                    } else {
-                        points.erase(points.begin() + x);
-                    }
-                }
-            }
-        }
-    }while(points.size() > nPoint);
-
-    printf("ANMS OK\n");
-    return points;
-}
-
 std::vector<InterestingPoint> MyQImage::Moravec(int _u, int _v, int _dx, int _dy, double T) const
 {
     printf("Start: Moravec\n");

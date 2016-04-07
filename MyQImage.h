@@ -10,32 +10,7 @@
 #include <algorithm>
 #include <assistant.h>
 
-struct InterestingPoint
-{
-    int x_, y_;
-    double value_;
 
-    InterestingPoint()
-    {
-
-    }
-
-    InterestingPoint(int x, int y, double value)
-    {
-        x_ = x;
-        y_ = y;
-        value_ = value;
-    }
-
-    void print(){
-        printf("x = %d, y = %d, value = %lf\n", x_, y_, value_);
-    }
-
-    double distance(InterestingPoint p){
-        return sqrt((p.x_ - x_) * (p.x_ - x_) + (p.y_ - y_) * (p.y_ - y_));
-    }
-
-};
 
 class MyQImage
 {
@@ -130,11 +105,6 @@ public:
             double T,                                   //пороговое значение точки
             double k
             ) const;
-
-    static std::vector<InterestingPoint> ANMS(
-            std::vector<InterestingPoint> points,
-            int nPoint
-            );                                          //Adaptive non-maximum suppression
 
     MyQImage convolution(
             const double* kernel,

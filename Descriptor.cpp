@@ -31,6 +31,10 @@ void Descriptor::addGistValue(int nGist, int bin, double addValue)
 
 double Descriptor::getGistValue(int nGist, int bin) const
 {
+    //заворачиваем корзину
+    if(bin >= nBin) bin = 0;
+    if(bin < 0) bin = nBin - 1;
+
     int index = bin + nGist * nBin;
     return gist_[index];
 }
@@ -40,7 +44,7 @@ InterestingPoint Descriptor::getInterestingPoint() const
     return point_;
 }
 
-double Descriptor::getDistanse(const Descriptor &descriptor) const
+double Descriptor::getDistance(const Descriptor &descriptor) const
 {
     double result = 0;
     for(int i = 0; i < nGistBin; i++){
@@ -53,7 +57,7 @@ double Descriptor::getDistanse(const Descriptor &descriptor) const
 
 void Descriptor::normalize()
 {
-    double normNum = detNormalNumber();
+    double normNum = getVectorSize();
 
     //нормализуем
     for(int i = 0; i < nGistBin; i++){
@@ -68,6 +72,8 @@ void Descriptor::normalize()
         }
     }
 
+    normNum = getVectorSize();
+
     //повторно нормализуем
     for(int i = 0; i < nGistBin; i++){
         for(int j = 0; j < nBin; j++){
@@ -77,7 +83,7 @@ void Descriptor::normalize()
 
 }
 
-double Descriptor::detNormalNumber()
+double Descriptor::getVectorSize()
 {
     double result = 0;
     for(int i = 0; i < nGistBin; i++){
@@ -85,5 +91,6 @@ double Descriptor::detNormalNumber()
             result += getGistValue(i,j) * getGistValue(i,j);
         }
     }
+    if(result == 0) result = 1;
     return sqrt(result);
 }
