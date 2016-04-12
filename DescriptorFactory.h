@@ -14,6 +14,7 @@ private:
 public:
     DescriptorFactory(const MyQImage& image);
     Descriptor getDescrIntrPoint(const InterestingPoint point);
+    Descriptor getNormalDescrIntrPoint(const InterestingPoint point);
 };
 
 #endif // DESCRIPTORFACTORY_H

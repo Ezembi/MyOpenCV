@@ -629,6 +629,32 @@ QImage MyQImage::getQImage()
     return Picture;
 }
 
+bool MyQImage::isExtremum(double value, int x0, int y0, int x1, int y1, bool flag)
+{
+    double min = value, max = value;
+    bool isMin = true, isMax = true;
+    int centerX = (x1 - x0) / 2, centerY = (y1 - y0) / 2;
+
+    for(int x = x0; x <= x1; x++){
+        for(int y = y0; y <= y1; y++){
+            if(flag){
+                if(x == x0 + centerX && y == y0 + centerY){
+                    continue;
+                }
+            }
+            if(getPixel(x,y) <= min)
+                isMin = false;
+            if(getPixel(x,y) >= max)
+                isMax = false;
+
+            if(!isMax && !isMin)
+                return false;
+        }
+    }
+
+    return true;
+}
+
 void MyQImage::saveImage(QString file)
 {
     QImage Picture(getWidth(),getHeight(),format_);

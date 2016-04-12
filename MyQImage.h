@@ -121,6 +121,15 @@ public:
 
     QImage getQImage();
 
+    bool isExtremum(
+            double value,
+            int x0,
+            int y0,
+            int x1,
+            int y1,
+            bool flag
+            );                                          //является ли value экстремумом в данной области
+
     void saveImage(QString file);                       //сохранение изображение
     void saveImage(
             QString file,

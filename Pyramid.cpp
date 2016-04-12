@@ -78,3 +78,16 @@ MyQImage Pyramid::getImage(int nOctav, int nLevel) const
 {
     return octaves[nOctav].getLevelImage(nLevel);
 }
+
+std::vector<std::vector<Blob>> Pyramid::DoG()
+{
+    printf("Start: DoG\n");
+
+    std::vector<std::vector<Blob>> blobs;
+
+    for(int i = 0; i < octaves.size() - 1; i++){
+        blobs.push_back(octaves[i].octaveDoG());
+    }
+    printf("DoG OK\n");
+    return blobs;
+}

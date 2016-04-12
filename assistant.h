@@ -14,7 +14,9 @@ struct InterestingPoint
 
     InterestingPoint()
     {
-
+        x_ = 0;
+        y_ = 0;
+        value_ = 0.0;
     }
 
     InterestingPoint(int x, int y, double value)
@@ -29,6 +31,38 @@ struct InterestingPoint
     }
 
     double distance(InterestingPoint p){
+        return sqrt((p.x_ - x_) * (p.x_ - x_) + (p.y_ - y_) * (p.y_ - y_));
+    }
+
+};
+
+//Блобы
+struct Blob
+{
+    int x_, y_, r_;
+    double value_;
+
+    Blob()
+    {
+        x_ = 0;
+        y_ = 0;
+        r_ = 0;
+        value_ = 0.0;
+    }
+
+    Blob(int x, int y, int r, double value)
+    {
+        x_ = x;
+        y_ = y;
+        r_ = r;
+        value_ = value;
+    }
+
+    void print(){
+        printf("x = %d, y = %d, r = %d, value = %lf\n", x_, y_, r_, value_);
+    }
+
+    double distance(Blob p){
         return sqrt((p.x_ - x_) * (p.x_ - x_) + (p.y_ - y_) * (p.y_ - y_));
     }
 
@@ -88,9 +122,7 @@ void static getGaussianKernel(double* kernel, int width, int height, double sigm
 }
 
 //Adaptive non-maximum suppression
-std::vector<InterestingPoint> static ANMS(
-        std::vector<InterestingPoint> points,
-        int nPoint){
+std::vector<InterestingPoint> static ANMS(std::vector<InterestingPoint> points, int nPoint){
     printf("Start: ANMS\n");
     int radius = 0;
     bool isMax;
@@ -120,8 +152,6 @@ std::vector<InterestingPoint> static ANMS(
     printf("ANMS OK\n");
     return points;
 }
-
-
 
 #endif // ASSISTANT
 
