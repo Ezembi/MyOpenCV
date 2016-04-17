@@ -95,28 +95,4 @@ double Descriptor::getVectorSize()
     return sqrt(result);
 }
 
-void Descriptor::biggestInTop()
-{
-    for(int i = 0; i < nGistBin; i++){
 
-        double max = getGistValue(i,0);
-        int maxJ = 0;
-
-        for(int j = 0; j < nBin; j++){
-            if(max < getGistValue(i,j)){
-                max = getGistValue(i,j);
-                maxJ = j;
-            }
-        }
-
-        if(maxJ != 0){
-            for(int j = maxJ; j < nBin; j++){
-                for(int k = j-1; k >= j - maxJ; k--){
-                    double tmp = getGistValue(i,k+1);
-                    setGistValue(i,k+1, getGistValue(i,k));
-                    setGistValue(i,k, tmp);
-                }
-            }
-        }
-    }
-}

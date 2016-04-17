@@ -24,10 +24,10 @@ int main(int argc, char *argv[])
 
 //Собель
 void Lab_1(){
-    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\Lenna.bmp");
+    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z22.jpg");
     MyQImage originalImage = resultImage;
-    originalImage = resultImage.blur();
-    originalImage = resultImage.sharpness();
+    //originalImage = resultImage.blur();
+    //originalImage = resultImage.sharpness();
     originalImage = resultImage.sobel("All");
     resultImage.verticalSwap();
     resultImage.horizontalSwap();
@@ -166,14 +166,14 @@ void Lab_4(){
 
     painter.end();
 
-    image.save("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\combo.bmp");
+    image.save("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\combo1.bmp");
 }
 
 void Lab_5(){
 
     //грузим кртинки
-    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
-    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
+    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2.jpg");
+    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z22.jpg");
 //    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\a1.jpg");
 //    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\a2.jpg");
 
@@ -182,28 +182,26 @@ void Lab_5(){
 
     //получаем все дескрипторы для первого изображения
     std::vector<Descriptor> descriptors1;
-
-    std::vector<InterestingPoint> points1 = ANMS(
-                image1.Harris(3,3,4,0.06),
-                nPoint
-                );
-
     DescriptorFactory df1(image1);
+    std::vector<InterestingPoint> points1 = df1.getNormalIntrPoint(ANMS(
+                                                                       image1.Harris(3,3,4,0.06),
+                                                                       nPoint
+                                                                       ));
     for(int i = 0; i < points1.size(); i++){
-        descriptors1.push_back(df1.getNormalDescrIntrPoint(points1[i]));
+        descriptors1.push_back(df1.getDescrIntrPoint(points1[i]));
     }
+
 
     //получаем все дескрипторы для второго изображения
     std::vector<Descriptor> descriptors2;
-
-    std::vector<InterestingPoint> points2 = ANMS(
-                image2.Harris(3,3,4,0.06),
-                nPoint
-                );
-
     DescriptorFactory df2(image2);
+    std::vector<InterestingPoint> points2 = df2.getNormalIntrPoint(ANMS(
+                                                                       image2.Harris(3,3,4,0.06),
+                                                                       nPoint
+                                                                       ));
+
     for(int i = 0; i < points2.size(); i++){
-        descriptors2.push_back(df2.getNormalDescrIntrPoint(points2[i]));
+        descriptors2.push_back(df2.getDescrIntrPoint(points2[i]));
     }
 
     //получаем загруженные картинки
@@ -222,12 +220,27 @@ void Lab_5(){
 
     painter.setPen(Qt::red);
 
+    //отрисовка max направлений
     for(int i = 0; i < points1.size(); i++){
-        painter.drawRect(points1[i].x_ - 1, points1[i].y_ - 1, 2, 2);
+
+        int newI = 10 * cos(points1[i].alpha_ * M_PI / 180.0);
+        int newJ = 10 * sin(points1[i].alpha_ * M_PI / 180.0);
+        painter.setPen(Qt::red);
+        painter.drawLine(points1[i].x_, points1[i].y_, points1[i].x_ + newI, points1[i].y_ + newJ );
+        painter.setPen(Qt::green);
+        painter.drawRect(points1[i].x_, points1[i].y_, 2, 2);
     }
+
     for(int i = 0; i < points2.size(); i++){
+        int newI = 10 * cos(points2[i].alpha_ * M_PI / 180.0);
+        int newJ = 10 * sin(points2[i].alpha_ * M_PI / 180.0);
+        painter.setPen(Qt::red);
+        painter.drawLine(qIamqe1.width() + points2[i].x_, points2[i].y_, qIamqe1.width() + points2[i].x_ + newI, points2[i].y_ + newJ );
+        painter.setPen(Qt::green);
         painter.drawRect(qIamqe1.width() + points2[i].x_ - 1, points2[i].y_ - 1, 2, 2);
     }
+
+    image.save("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboLines.bmp");
 
     //поиск "похожих" дескрипторов
     for(int i = 0; i < descriptors1.size(); i++){
@@ -271,6 +284,7 @@ void Lab_5(){
                             descriptors2[minJ1].getInterestingPoint().y_
                             )
                         );
+
         }
 
     }
@@ -282,13 +296,14 @@ void Lab_5(){
 
 //Блобы
 void Lab_6(){
-    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\b.jpg");
+//    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\b.jpg");
+    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\c.bmp");
 
-    Pyramid pyramid(resultImage, 1.6, 5, 5);
+    Pyramid pyramid(resultImage, 1.6, 7, 7);
     pyramid.savePyramid("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\1\\");
 
     std::vector<std::vector<Blob>> blobs;
-    blobs = pyramid.DoG();
+    blobs = pyramid.getBlobs();
 
     pyramid.savePyramid("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\2\\");
 
@@ -304,7 +319,8 @@ void Lab_6(){
         for(int j = 0; j < blobs[i].size(); j++){
             QPen pen(QColor(rand()%255 ,rand()%255, rand()%255));
             painter.setPen(pen);
-            painter.drawEllipse(blobs[i][j].x_, blobs[i][j].y_, blobs[i][j].r_, blobs[i][j].r_);
+            painter.drawEllipse(blobs[i][j].x_ - blobs[i][j].r_/2, blobs[i][j].y_ - blobs[i][j].r_/2, blobs[i][j].r_, blobs[i][j].r_);
+//            painter.drawEllipse(blobs[i][j].x_, blobs[i][j].y_, 1 ,1);
         }
     }
 

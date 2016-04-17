@@ -15,6 +15,7 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
     deltaSigma = sqrt(sigma * sigma - 0.8 * 0.8);
 
     tmpImage = Image.gaussianFilter(deltaSigma);            //фильтруем гаусом до sigma 0
+    tmpImage.normalizeTo0_1();
 
     for(int i = 0; i < octave; i++){
 
@@ -29,20 +30,23 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
 
             levelImage = tmpImage.gaussianFilter(deltaSigma);
 
+            levelImage.normalizeTo0_1();    //нормируем,
+            //иначе: (level - 1) = ~0.X...; level = ~0.0000X...; (level + 1) = ~ 0.00000000X...
+
             PyramidLevel Level(levelImage, deltaSigma, levelSigma, level);
             octaves.addLevel(Level);
 
-            tmpImage.copy(levelImage);
-            //tmpImage = levelImage;
+//            tmpImage.copy(levelImage);
+            tmpImage = levelImage;
 
             sigma = levelSigma;
         }
 
         addOctrve(octaves);
 
-        tmpImage.resizeAndCopy(levelImage, levelImage.getWidth() / 2, levelImage.getHeight() / 2);
-        //levelImage = tmpImage;
-        levelImage.copy(tmpImage);
+        tmpImage.resizeAndCopy(levelImage, qRound((double)levelImage.getWidth() / 2.0), qRound((double)levelImage.getHeight() / 2.0));
+        levelImage = tmpImage;
+//        levelImage.copy(tmpImage);
     }
 
     printf("Pyramid OK!\n");
@@ -79,13 +83,13 @@ MyQImage Pyramid::getImage(int nOctav, int nLevel) const
     return octaves[nOctav].getLevelImage(nLevel);
 }
 
-std::vector<std::vector<Blob>> Pyramid::DoG()
+std::vector<std::vector<Blob>> Pyramid::getBlobs()
 {
     printf("Start: DoG\n");
 
     std::vector<std::vector<Blob>> blobs;
 
-    for(int i = 0; i < octaves.size() - 1; i++){
+    for(int i = 0; i < octaves.size(); i++){
         blobs.push_back(octaves[i].octaveDoG());
     }
     printf("DoG OK\n");

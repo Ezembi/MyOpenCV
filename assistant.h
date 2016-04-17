@@ -11,12 +11,14 @@ struct InterestingPoint
 {
     int x_, y_;
     double value_;
+    double alpha_;
 
     InterestingPoint()
     {
         x_ = 0;
         y_ = 0;
         value_ = 0.0;
+        alpha_ = 0.0;
     }
 
     InterestingPoint(int x, int y, double value)
@@ -24,6 +26,15 @@ struct InterestingPoint
         x_ = x;
         y_ = y;
         value_ = value;
+        alpha_ = 0.0;
+    }
+
+    InterestingPoint(int x, int y, double value, double alpha)
+    {
+        x_ = x;
+        y_ = y;
+        value_ = value;
+        alpha_ = alpha;
     }
 
     void print(){
@@ -85,6 +96,15 @@ int static reflect(int x, int maxX)
 int static getIndex(int x, int y, int width, int height){
     return reflect(x, width) * height + reflect(y, height);
 }
+
+int static getIndex(int bin, int nBin, int nGist){
+    //заворачиваем корзину
+    if(bin >= nBin) bin = 0;
+    if(bin < 0) bin = nBin - 1;
+
+    return bin + nGist * nBin;
+}
+
 
 //расстояние между точкими
 double static pointDistance(double x0, double x1, double y0, double y1){

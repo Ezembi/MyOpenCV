@@ -45,12 +45,34 @@ std::vector<Blob> PyramidOctave::octaveDoG()
         for(int x = 1; x < levels[i].getWidth()-1; x++){
             for(int y = 1; y < levels[i].getHeight()-1; y++){
                 double pixel = levels[i].getPixel(x,y);
-                if(
-                    levels[i - 1].isExtremum(pixel, x - 1, y - 1, x + 1, y + 1, false) &&
-                    levels[  i  ].isExtremum(pixel, x - 1, y - 1, x + 1, y + 1, true) &&
-                    levels[i + 1].isExtremum(pixel, x - 1, y - 1, x + 1, y + 1, false)
-                   ){
-                    Blob blob((x * (n_ + 1)) - (n_ + 1) / 2,(y * (n_ + 1)) - (n_ + 1) / 2,levels[i].getGlobalSigma() * sqrt(2.0) * (n_ + 1),pixel);
+                bool max = true;
+                bool min = true;
+
+                //поиск экстремума в 26 точках
+                for(int ii = i - 1; ii <= i + 1; ii++){
+                    for(int xi = x - 1; xi <= x + 1; xi++){
+                        for(int yi = y - 1; yi <= y + 1; yi++){
+                            if(xi == x && yi == y){
+                                //пропуск pixel'я, который считаем экстремумом
+                            } else {
+                                if(pixel <= levels[ii].getPixel(xi,yi)){
+                                    max = false;
+                                }
+
+                                if(pixel >= levels[ii].getPixel(xi,yi)){
+                                    min = false;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(max){
+                    Blob blob(x * pow(2,n_),y * pow(2,n_),sqrt(2.0) * pow(2,n_),pixel);
+                    blobs.push_back(blob);
+                }
+                if(min){
+                    Blob blob(x * pow(2,n_),y * pow(2,n_),sqrt(2.0) * pow(2,n_),pixel);
                     blobs.push_back(blob);
                 }
             }

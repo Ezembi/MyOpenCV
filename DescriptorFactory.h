@@ -14,7 +14,10 @@ private:
 public:
     DescriptorFactory(const MyQImage& image);
     Descriptor getDescrIntrPoint(const InterestingPoint point);
-    Descriptor getNormalDescrIntrPoint(const InterestingPoint point);
+
+
+    //получим набор точек интереса со значениями поворота
+    std::vector<InterestingPoint> getNormalIntrPoint(const std::vector<InterestingPoint> &_points);
 };
 
 #endif // DESCRIPTORFACTORY_H

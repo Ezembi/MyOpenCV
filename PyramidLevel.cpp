@@ -39,11 +39,6 @@ int PyramidLevel::getHeight() const
     return image_.getHeight();
 }
 
-bool PyramidLevel::isExtremum(double value, int x0, int y0, int x1, int y1, bool flag)
-{
-    return image_.isExtremum(value, x0, y0, x1, y1, flag);
-}
-
 double PyramidLevel::getPixel(int x, int y)
 {
     return image_.getPixel(x,y);
@@ -55,8 +50,7 @@ void PyramidLevel::Subtraction(const PyramidLevel &level)
         for(int y = 0; y < image_.getHeight(); y++){
             double im1 = image_.getPixel(x,y);
             double im2 = level.image_.getPixel(x,y);
-            double raz = im1 - im2;
-//            image_.setPixel(x,y, image_.getPixel(x,y) - level.image_.getPixel(x,y));
+            double raz = im2 - im1;
             image_.setPixel(x,y, raz);
         }
     }

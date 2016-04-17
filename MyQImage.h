@@ -84,6 +84,7 @@ public:
     MyQImage blur() const;                              //размытие
     MyQImage sharpness() const;                         //резкость
     MyQImage sobel(QString Param) const;                //собель (!ГРАДИЕНТ!)
+    void normalizeTo0_1();                              //приведение пикселей изображения к значения 0...1
 
     MyQImage gaussianFilter(
             double sigma
@@ -120,15 +121,6 @@ public:
             ) const;                                    //сепарабельная свёртка
 
     QImage getQImage();
-
-    bool isExtremum(
-            double value,
-            int x0,
-            int y0,
-            int x1,
-            int y1,
-            bool flag
-            );                                          //является ли value экстремумом в данной области
 
     void saveImage(QString file);                       //сохранение изображение
     void saveImage(

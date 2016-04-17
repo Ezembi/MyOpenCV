@@ -21,7 +21,6 @@ public:
     void normalize();
     double getVectorSize();
 
-    void biggestInTop();                //поворот корзин
 };
 
 #endif // DESCRIPTOR_H

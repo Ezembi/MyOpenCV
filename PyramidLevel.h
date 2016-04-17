@@ -18,13 +18,6 @@ public:
     int getLevelNumber() const;
     int getWidth() const;
     int getHeight() const;
-    bool isExtremum(double value,
-                    int x0,
-                    int y0,
-                    int x1,
-                    int y1,
-                    bool flag
-                    );
     double getPixel(int x, int y);
     void Subtraction(const PyramidLevel& level);    //вычитание из данного уровня "level" и запись результата в данный уровень
 };

@@ -320,12 +320,37 @@ MyQImage MyQImage::sobel(QString Param) const
     }
 }
 
+void MyQImage::normalizeTo0_1()
+{
+    max_ = getPixel(0,0);
+    min_ = getPixel(0,0);
+
+    for(int x = 0; x < getWidth()-1; x++){
+        for(int y = 0; y < getHeight()-1; y++){
+
+            if(max_ < getPixel(x,y))
+                max_ = getPixel(x,y);
+            if(min_ > getPixel(x,y))
+                min_ = getPixel(x,y);
+        }
+    }
+
+    double color;
+    for(int x = 0; x < getWidth(); x++){
+        for(int y = 0; y < getHeight(); y++){
+            color = getPixel(x,y);
+            color = ((color - min_) / (max_ - min_)) * (1 - 0);
+            setPixel(x,y,color);
+        }
+    }
+}
+
 MyQImage MyQImage::getSobelGradient(const MyQImage &xImage, const MyQImage &yImage) const
 {
     MyQImage resultImage(getWidth(), getHeight());
 
-    for(int x = 0; x < getHeight(); x++){
-        for(int y = 0; y < getWidth(); y++) {
+    for(int x = 0; x < getWidth(); x++){
+        for(int y = 0; y < getHeight(); y++) {
             resultImage.setPixel(
                         x,
                         y,
@@ -352,8 +377,8 @@ MyQImage MyQImage::gaussianFilter(double sigma) const
 {
     printf("GaussianFilter (sigma = %lf)\n", sigma);
 
-    if(sigma != 0) {
-        int widthHeight = 6 * qRound(sigma) + 1;
+    if(qRound(sigma) != 0) {
+        int widthHeight = 6 * qRound(sigma)+1;
         double kernel[widthHeight][widthHeight];
         double kernelRow[widthHeight];
         double kernelColumn[widthHeight];
@@ -365,7 +390,6 @@ MyQImage MyQImage::gaussianFilter(double sigma) const
             kernelColumn[i] = kernel[i][0];
         }
 
-        //return convolution(&kernel[0][0], widthHeight, widthHeight);
         return convolution(&kernelRow[0], &kernelColumn[0], widthHeight, widthHeight);
     }
     return *this;
@@ -585,6 +609,9 @@ MyQImage MyQImage::convolution(const double *kernel, int u, int v) const
     double resultPixel = 0.0;
     int n = u * v - 1;
 
+    int w = getWidth();
+    int h = getHeight();
+
     for(int i = 0; i < getWidth(); i++){
         for(int j = 0; j < getHeight(); j++) {
             x0 = i - (u / 2);
@@ -596,7 +623,7 @@ MyQImage MyQImage::convolution(const double *kernel, int u, int v) const
 
             for(int y = y0 ; y <= y1; y++) {
                 for(int x = x0; x <= x1; x++, n--){
-                    resultPixel += (kernel[n] * getPixel(reflect(x, xMax),reflect(y, yMax)));
+                    resultPixel += (kernel[n] * getPixel(x,y));
                 }
             }
 
@@ -629,44 +656,18 @@ QImage MyQImage::getQImage()
     return Picture;
 }
 
-bool MyQImage::isExtremum(double value, int x0, int y0, int x1, int y1, bool flag)
-{
-    double min = value, max = value;
-    bool isMin = true, isMax = true;
-    int centerX = (x1 - x0) / 2, centerY = (y1 - y0) / 2;
-
-    for(int x = x0; x <= x1; x++){
-        for(int y = y0; y <= y1; y++){
-            if(flag){
-                if(x == x0 + centerX && y == y0 + centerY){
-                    continue;
-                }
-            }
-            if(getPixel(x,y) <= min)
-                isMin = false;
-            if(getPixel(x,y) >= max)
-                isMax = false;
-
-            if(!isMax && !isMin)
-                return false;
-        }
-    }
-
-    return true;
-}
-
 void MyQImage::saveImage(QString file)
 {
     QImage Picture(getWidth(),getHeight(),format_);
 
     nInterestingPoint_ = 0;
 
-    auto dminmax = std::minmax(&Image_[0], &Image_[0] + getHeight()* getWidth() );
+    /*auto dminmax = std::minmax(&Image_[0], &Image_[0] + getHeight()* getWidth() );
 
     max_ = getPixel(0,0);
     min_ = getPixel(0,0);
     min_ = *dminmax.second;
-    max_ = *dminmax.first;
+    max_ = *dminmax.first;*/
 
     max_ = getPixel(0,0);
     min_ = getPixel(0,0);
