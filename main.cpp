@@ -173,17 +173,17 @@ void Lab_5(){
 
     //грузим кртинки
     MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2.jpg");
-    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z22.jpg");
+    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
 //    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\a1.jpg");
 //    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\a2.jpg");
 
     //кол-во интересных точек
-    int nPoint = 300;
+    int nPoint = 100;
 
     //получаем все дескрипторы для первого изображения
     std::vector<Descriptor> descriptors1;
     DescriptorFactory df1(image1);
-    std::vector<InterestingPoint> points1 = df1.getNormalIntrPoint(ANMS(
+    std::vector<InterestingPoint> points1 = df1.getOrientationIntrPoint(ANMS(
                                                                        image1.Harris(3,3,4,0.06),
                                                                        nPoint
                                                                        ));
@@ -195,7 +195,7 @@ void Lab_5(){
     //получаем все дескрипторы для второго изображения
     std::vector<Descriptor> descriptors2;
     DescriptorFactory df2(image2);
-    std::vector<InterestingPoint> points2 = df2.getNormalIntrPoint(ANMS(
+    std::vector<InterestingPoint> points2 = df2.getOrientationIntrPoint(ANMS(
                                                                        image2.Harris(3,3,4,0.06),
                                                                        nPoint
                                                                        ));
@@ -299,7 +299,7 @@ void Lab_6(){
 //    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\b.jpg");
     MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\c.bmp");
 
-    Pyramid pyramid(resultImage, 1.6, 7, 7);
+    Pyramid pyramid(resultImage, 1.6, 7, 5);
     pyramid.savePyramid("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\1\\");
 
     std::vector<std::vector<Blob>> blobs;

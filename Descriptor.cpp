@@ -91,7 +91,7 @@ double Descriptor::getVectorSize()
             result += getGistValue(i,j) * getGistValue(i,j);
         }
     }
-    if(result == 0) result = 1;
+    if(result == 0) result = 0.0000000001;
     return sqrt(result);
 }
 

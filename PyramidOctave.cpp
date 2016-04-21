@@ -67,11 +67,7 @@ std::vector<Blob> PyramidOctave::octaveDoG()
                     }
                 }
 
-                if(max){
-                    Blob blob(x * pow(2,n_),y * pow(2,n_),sqrt(2.0) * pow(2,n_),pixel);
-                    blobs.push_back(blob);
-                }
-                if(min){
+                if(max || min){
                     Blob blob(x * pow(2,n_),y * pow(2,n_),sqrt(2.0) * pow(2,n_),pixel);
                     blobs.push_back(blob);
                 }

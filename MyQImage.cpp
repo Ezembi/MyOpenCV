@@ -75,7 +75,7 @@ MyQImage::MyQImage(const MyQImage &data, int newWidth, int newHeight)
                 setPixel(newX, newY, data.getPixel(x,y));
             }
         }
-        printf("Resize succesfully!\n");
+        //printf("Resize succesfully!\n");
     }
 }
 
@@ -96,7 +96,7 @@ MyQImage::MyQImage(const MyQImage& data)
             }
         }
 
-        printf("Copy succesfully!\n");
+        //printf("Copy succesfully!\n");
     } else {
         printf("Error: Copy data is bad!\n");
         exit(-1);
@@ -127,12 +127,12 @@ MyQImage::MyQImage(MyQImage &&image)
     maxOrigial_ = image.maxOrigial_;
     image.maxOrigial_ = 0;
 
-    printf("Move succesfully!\n");
+    //printf("Move succesfully!\n");
 }
 
 MyQImage::~MyQImage()
 {
-    printf("Memory free\n");
+    //printf("Memory free\n");
 }
 
 const MyQImage &MyQImage::operator=(MyQImage &&image)
@@ -150,7 +150,7 @@ const MyQImage &MyQImage::operator=(MyQImage &&image)
     minOrigial_ = image.minOrigial_;
     maxOrigial_ = image.maxOrigial_;
 
-    printf("Operator = succesfully!\n");
+    //printf("Operator = succesfully!\n");
     return *this;
 }
 
@@ -237,7 +237,7 @@ void MyQImage::copy(const MyQImage &imageForCopy)
         }
     }
 
-    printf("Copy succesfully!\n");
+    //printf("Copy succesfully!\n");
 }
 
 void MyQImage::resizeAndCopy(const MyQImage &imageForCopy, int newWidth, int newHeight)
@@ -257,7 +257,7 @@ void MyQImage::resizeAndCopy(const MyQImage &imageForCopy, int newWidth, int new
             }
         }
 
-        printf("Resize and copy succesfully!\n");
+        //printf("Resize and copy succesfully!\n");
     }
 }
 
@@ -390,7 +390,8 @@ MyQImage MyQImage::gaussianFilter(double sigma) const
             kernelColumn[i] = kernel[i][0];
         }
 
-        return convolution(&kernelRow[0], &kernelColumn[0], widthHeight, widthHeight);
+        return convolution(&kernel[0][0], widthHeight, widthHeight);
+        //return convolution(&kernelRow[0], &kernelColumn[0], widthHeight, widthHeight);
     }
     return *this;
     printf("GaussianFilter OK!\n");

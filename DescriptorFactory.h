@@ -17,7 +17,7 @@ public:
 
 
     //получим набор точек интереса со значениями поворота
-    std::vector<InterestingPoint> getNormalIntrPoint(const std::vector<InterestingPoint> &_points);
+    std::vector<InterestingPoint> getOrientationIntrPoint(const std::vector<InterestingPoint> &_points);
 };
 
 #endif // DESCRIPTORFACTORY_H
