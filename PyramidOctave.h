@@ -15,7 +15,7 @@ public:
     int nLevels() const;
     MyQImage getLevelImage(int i) const;
     int getLevelNumber(int i) const;
-    std::vector<Blob> octaveDoG();                   //сделать DoG для данной октавы
+    std::vector<InterestingPoint> octaveDoG();                   //сделать DoG для данной октавы
 
 };
 

@@ -24,8 +24,8 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
 
         for(double level = 0; level <= numLevel; level++){
 
-            //double levelSigma = sigma0 * pow(k, level);     //сигма текущего уровня (глобальная)
-            double levelSigma = sigma * k;
+            double levelSigma = sigma0 * pow(k, level);     //сигма текущего уровня (глобальная)
+            //double levelSigma = sigma * k;
 
             deltaSigma = sqrt(levelSigma * levelSigma - sigma * sigma);
 
@@ -38,7 +38,7 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
             PyramidLevel Level(levelImage, deltaSigma, levelSigma, level);
             octaves.addLevel(Level);
 
-//            tmpImage.copy(levelImage);
+            //            tmpImage.copy(levelImage);
             tmpImage = levelImage;
 
             sigma = levelSigma;
@@ -48,7 +48,7 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
 
         tmpImage.resizeAndCopy(levelImage, qRound((double)levelImage.getWidth() / 2.0), qRound((double)levelImage.getHeight() / 2.0));
         levelImage = tmpImage;
-//        levelImage.copy(tmpImage);
+        //        levelImage.copy(tmpImage);
     }
 
     printf("Pyramid OK!\n");
@@ -85,14 +85,19 @@ MyQImage Pyramid::getImage(int nOctav, int nLevel) const
     return octaves[nOctav].getLevelImage(nLevel);
 }
 
-std::vector<std::vector<Blob>> Pyramid::getBlobs()
+std::vector<InterestingPoint> Pyramid::getBlobs()
 {
     printf("Start: DoG\n");
 
-    std::vector<std::vector<Blob>> blobs;
+    std::vector<InterestingPoint> blobs;
 
     for(int i = 0; i < octaves.size(); i++){
-        blobs.push_back(octaves[i].octaveDoG());
+
+        std::vector<InterestingPoint> localBlobs = octaves[i].octaveDoG();
+
+        for(int i = 0; i < localBlobs.size(); i++){
+            blobs.push_back(localBlobs[i]);
+        }
     }
     printf("DoG OK\n");
     return blobs;

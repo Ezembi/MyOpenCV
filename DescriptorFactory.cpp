@@ -16,6 +16,8 @@ DescriptorFactory::DescriptorFactory(const MyQImage &image)
         }
     }
 
+    Pfi.saveImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\pfi.bmp");
+
     printf("DescriptorFactory OK\n");
 
 }
@@ -31,16 +33,20 @@ Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
     int nPart = 2;                                  //кол-во частей гистограммы по 1-ой оси
     double disToCurCen;                             //дистанция до текущего центра
     double disToRelCen;                             //дистанция до смежного центра
-    double maxDist = sqrt(wGist * wGist + hGist * hGist);//радиус (окресность) от интересной точки
+    //double maxDist = sqrt(wGist * wGist + hGist * hGist);//радиус (окресность) от интересной точки
+    double maxDist = hGist * wGist;
 
-    for(int i = -maxDist; i <= maxDist; i++){
-        for(int j = -maxDist ; j <= maxDist; j++){
+    for(double i = -maxDist; i <= maxDist; i++){
+        for(double j = -maxDist; j <= maxDist; j++){
 
             if(pointDistance((double)i,0.0,(double)j,0.0) <= maxDist){
 
                 //поворачиваем точку окресности
-                int newI = i * cos(-point.alpha_ * M_PI / 180.0) - j * sin(-point.alpha_ * M_PI / 180.0);
-                int newJ = i * sin(-point.alpha_ * M_PI / 180.0) + j * cos(-point.alpha_ * M_PI / 180.0);
+                int newI = (i * cos(-point.alpha_ * M_PI / 180.0) - j * sin(-point.alpha_ * M_PI / 180.0) + 0.5);
+                int newJ = (i * sin(-point.alpha_ * M_PI / 180.0) + j * cos(-point.alpha_ * M_PI / 180.0) + 0.5);
+
+//                int newI = i;
+//                int newJ = j;
 
                 double localPfi =  Pfi.getPixel(point.x_ + newI, point.y_ + newJ) - point.alpha_;
                 /*if(localPfi > 360) localPfi -= 360;*/
@@ -51,19 +57,24 @@ Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
                 int doubleMaxDist = (int)maxDist * 2;
 
                 //сдвигаем -maxDist в 0,0;
-                int Ix = i + maxDist;
-                int Iy = j + maxDist;
+                int Ix = newI + maxDist;
+                int Iy = newJ + maxDist;
                 int x = Ix / (doubleMaxDist / nPart + 1);
                 int y = Iy / (doubleMaxDist / nPart + 1);
 
                 nGist = x * nPart + y;
+
+               /* if(newI > 0 && newJ > 0)   nGist = 0;     //верхний левый
+                if(newI <= 0 && newJ > 0)  nGist = 1;     //верхний правый
+                if(newI > 0 && newJ <= 0)  nGist = 2;     //нижний левый
+                if(newI <= 0 && newJ <= 0) nGist = 3;     //нижний правый*/
 
 
                 //----------------!!!----------------\\
                 //вот тут как раз и ошибка с вычислением части дескриптора из за координаты 0
                 //не понятно куда её пихать, если делать, что в дескрип. только одна часть,
                 //но "длинная" из 36 корзин, то поворот считается норм
-                nGist = 0;
+                //nGist = 0;
 
                 //узнаём номер текущей корзины
                 bin = (localPfi / binSize + 0.5);
@@ -113,11 +124,11 @@ std::vector<InterestingPoint> DescriptorFactory::getOrientationIntrPoint(const s
 
         std::fill(localBin, localBin + localNBin, 0.0);
 
-        for(int i = -maxDist - 1; i <= maxDist+1; i++){
-            for(int j = -maxDist - 1; j <= maxDist+1; j++){
+        for(int i = -maxDist * 3; i < maxDist * 3; i++){
+            for(int j = -maxDist * 3; j < maxDist * 3; j++){
 
                 //если точка попала в радиус, раскидываем по корзинам
-                if(pointDistance((double)i,0.0,(double)j,0.0) <= maxDist){
+                if(pointDistance((double)i,0.0,(double)j,0.0) <= maxDist * 2){
 
                     double localPfi = Pfi.getPixel(_points[k].x_ + i, _points[k].y_ + j);
                     double localBinCenter;
@@ -140,8 +151,8 @@ std::vector<InterestingPoint> DescriptorFactory::getOrientationIntrPoint(const s
 
                     //Обратнопропорционально распределяем L между центрами
                     //2-х смежных корзин, исходя из расстояния
-                    localBin[getIndex(bin,        localNBin,0)] += L.getPixel(_points[k].x_ + i, _points[k].y_ + j) * (1 - disToCurCen / binSize);
-                    localBin[getIndex(relatedBin, localNBin,0)] += L.getPixel(_points[k].x_ + i, _points[k].y_ + j) * (1 - disToRelCen / binSize);
+                    localBin[bin       ] += L.getPixel(_points[k].x_ + i, _points[k].y_ + j) * (1 - disToCurCen / binSize);
+                    localBin[relatedBin] += L.getPixel(_points[k].x_ + i, _points[k].y_ + j) * (1 - disToRelCen / binSize);
 
                 }
             }
@@ -158,7 +169,12 @@ std::vector<InterestingPoint> DescriptorFactory::getOrientationIntrPoint(const s
         }
 
         //добавляем
-        InterestingPoint point(_points[k].x_, _points[k].y_, _points[k].value_, (double)maxI * binSize);
+        InterestingPoint point(
+                    _points[k].x_,
+                    _points[k].y_,
+                    _points[k].value_,
+                    (double)maxI * binSize
+                    );
         points.push_back(point);
 
         //найдём 2-ой по максимуму

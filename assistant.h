@@ -9,7 +9,7 @@
 //интересные точки
 struct InterestingPoint
 {
-    int x_, y_;
+    int x_, y_, r_;
     double value_;
     double alpha_;
 
@@ -17,6 +17,7 @@ struct InterestingPoint
     {
         x_ = 0;
         y_ = 0;
+        r_ = 0;
         value_ = 0.0;
         alpha_ = 0.0;
     }
@@ -25,6 +26,7 @@ struct InterestingPoint
     {
         x_ = x;
         y_ = y;
+        r_ = 0;
         value_ = value;
         alpha_ = 0.0;
     }
@@ -33,47 +35,25 @@ struct InterestingPoint
     {
         x_ = x;
         y_ = y;
+        r_ = 0;
         value_ = value;
         alpha_ = alpha;
     }
 
-    void print(){
-        printf("x = %d, y = %d, value = %lf\n", x_, y_, value_);
-    }
-
-    double distance(InterestingPoint p){
-        return sqrt((p.x_ - x_) * (p.x_ - x_) + (p.y_ - y_) * (p.y_ - y_));
-    }
-
-};
-
-//Блобы
-struct Blob
-{
-    int x_, y_, r_;
-    double value_;
-
-    Blob()
-    {
-        x_ = 0;
-        y_ = 0;
-        r_ = 0;
-        value_ = 0.0;
-    }
-
-    Blob(int x, int y, int r, double value)
+    InterestingPoint(int x, int y, int r, double value, double alpha)
     {
         x_ = x;
         y_ = y;
         r_ = r;
         value_ = value;
+        alpha_ = alpha;
     }
 
     void print(){
-        printf("x = %d, y = %d, r = %d, value = %lf\n", x_, y_, r_, value_);
+        printf("x = %d, y = %d, r = %d, value = %lf, alpha = %0.10lf\n", x_, y_, r_, value_, alpha_);
     }
 
-    double distance(Blob p){
+    double distance(InterestingPoint p){
         return sqrt((p.x_ - x_) * (p.x_ - x_) + (p.y_ - y_) * (p.y_ - y_));
     }
 
@@ -102,7 +82,7 @@ int static getIndex(int bin, int nBin, int nGist){
     if(bin >= nBin) bin = 0;
     if(bin < 0) bin = nBin - 1;
 
-    return bin + nGist * nBin;
+    return bin * nGistBin + nGist;
 }
 
 

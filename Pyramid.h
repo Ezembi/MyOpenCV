@@ -15,7 +15,7 @@ public:
     void addOctrve(PyramidOctave& octave);
     int nOctave() const;
     MyQImage getImage(int nOctav, int nLevel) const;
-    std::vector<std::vector<Blob>> getBlobs();                                 //DoG для всей пирамиды и перезаписи пирамиды
+    std::vector<InterestingPoint> getBlobs();                                 //DoG для всей пирамиды и перезаписи пирамиды
 };
 
 #endif // PYRAMID_H

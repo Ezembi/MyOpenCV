@@ -30,7 +30,7 @@ int PyramidOctave::getLevelNumber(int i) const
     return levels[i].getLevelNumber();
 }
 
-std::vector<Blob> PyramidOctave::octaveDoG()
+std::vector<InterestingPoint> PyramidOctave::octaveDoG()
 {
     for(int i = 0; i < levels.size() - 1; i++){
         levels[i].Subtraction(levels[i + 1]);
@@ -39,7 +39,7 @@ std::vector<Blob> PyramidOctave::octaveDoG()
     //удаляем верхушку
     levels.erase(levels.begin() + (levels.size() - 1));
 
-    std::vector<Blob> blobs;
+    std::vector<InterestingPoint> blobs;
 
     for(int i = 1; i < levels.size() - 1; i++){
         for(int x = 1; x < levels[i].getWidth()-1; x++){
@@ -68,8 +68,21 @@ std::vector<Blob> PyramidOctave::octaveDoG()
                 }
 
                 if(max || min){
-                    Blob blob(x * pow(2,n_),y * pow(2,n_),sqrt(2.0) * pow(2,n_),pixel);
-                    blobs.push_back(blob);
+                    if(pixel > -0.015 && pixel < 0.015){
+                        //отбрасываем "мусор"
+                        //с минусом - чёрные
+                        //с + белые
+                    } else {
+                        printf("%lf ", pixel);
+                        InterestingPoint blob(
+                                    x * pow(2,n_),
+                                    y * pow(2,n_),
+                                    sqrt(2.0) * pow(2,n_) * levels[i].getGlobalSigma(),
+                                    pixel,
+                                    0.0
+                                    );
+                        blobs.push_back(blob);
+                    }
                 }
             }
         }

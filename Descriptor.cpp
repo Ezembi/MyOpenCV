@@ -16,12 +16,7 @@ Descriptor::Descriptor(InterestingPoint point)
 
 void Descriptor::setGistValue(int nGist, int bin, double value)
 {
-    //заворачиваем корзину
-    if(bin >= nBin) bin = 0;
-    if(bin < 0) bin = nBin - 1;
-
-    int index = bin + nGist * nBin;
-    gist_[index] = value;
+    gist_[getIndex(bin, nBin, nGist)] = value;
 }
 
 void Descriptor::addGistValue(int nGist, int bin, double addValue)
@@ -31,12 +26,7 @@ void Descriptor::addGistValue(int nGist, int bin, double addValue)
 
 double Descriptor::getGistValue(int nGist, int bin) const
 {
-    //заворачиваем корзину
-    if(bin >= nBin) bin = 0;
-    if(bin < 0) bin = nBin - 1;
-
-    int index = bin + nGist * nBin;
-    return gist_[index];
+    return gist_[getIndex(bin, nBin, nGist)];
 }
 
 InterestingPoint Descriptor::getInterestingPoint() const
@@ -94,5 +84,18 @@ double Descriptor::getVectorSize()
     if(result == 0) result = 0.0000000001;
     return sqrt(result);
 }
+
+void Descriptor::print()
+{
+    for(int i = 0; i < nGistBin; i++){
+         printf("\n");
+        for(int j = 0; j < nBin; j++){
+             printf("%lf ",getGistValue(i,j));
+        }
+    }
+    printf("\n\n");
+}
+
+
 
 

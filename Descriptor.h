@@ -21,6 +21,8 @@ public:
     void normalize();
     double getVectorSize();
 
+    void print();
+
 };
 
 #endif // DESCRIPTOR_H
