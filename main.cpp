@@ -172,13 +172,11 @@ void Lab_4(){
 void Lab_5(){
 
     //грузим кртинки
-    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\1.bmp");
-    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\2.bmp");
-//    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\a1.jpg");
-//    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\a2.jpg");
+    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2.jpg");
+    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
 
     //кол-во интересных точек
-    int nPoint = 1;
+    int nPoint = 300;
 
     //получаем все дескрипторы для первого изображения
     std::vector<Descriptor> descriptors1;
@@ -189,12 +187,12 @@ void Lab_5(){
                                                                        ));
 
     for(int i = 0; i < points1.size(); i++){
-        points1[i].print();
+//        points1[i].print();
         descriptors1.push_back(df1.getDescrIntrPoint(points1[i]));
     }
 
     for(int i = 0; i < descriptors1.size(); i++){
-        descriptors1[i].print();
+//        descriptors1[i].print();
     }
 
 
@@ -207,12 +205,12 @@ void Lab_5(){
                                                                        ));
 
     for(int i = 0; i < points2.size(); i++){
-        points2[i].print();
+//        points2[i].print();
         descriptors2.push_back(df2.getDescrIntrPoint(points2[i]));
     }
 
     for(int i = 0; i < descriptors2.size(); i++){
-        descriptors2[i].print();
+//        descriptors2[i].print();
     }
 
     //получаем загруженные картинки
@@ -239,7 +237,7 @@ void Lab_5(){
         painter.setPen(Qt::red);
         painter.drawLine(points1[i].x_, points1[i].y_, points1[i].x_ + newI, points1[i].y_ + newJ );
         painter.setPen(Qt::green);
-        //painter.drawRect(points1[i].x_ - 1, points1[i].y_ - 1, 2, 2);
+        painter.drawRect(points1[i].x_ - 1, points1[i].y_ - 1, 2, 2);
     }
 
     for(int i = 0; i < points2.size(); i++){
@@ -248,10 +246,10 @@ void Lab_5(){
         painter.setPen(Qt::red);
         painter.drawLine(qIamqe1.width() + points2[i].x_, points2[i].y_, qIamqe1.width() + points2[i].x_ + newI, points2[i].y_ + newJ );
         painter.setPen(Qt::green);
-       // painter.drawRect(qIamqe1.width() + points2[i].x_ - 1, points2[i].y_ - 1, 2, 2);
+        painter.drawRect(qIamqe1.width() + points2[i].x_ - 1, points2[i].y_ - 1, 2, 2);
     }
 
-    image.save("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboLines.bmp");
+    image.save("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboLines1.bmp");
 
     //поиск "похожих" дескрипторов
     for(int i = 0; i < descriptors1.size(); i++){
@@ -288,8 +286,8 @@ void Lab_5(){
             }
         }
 
-        printf("%lf / %lf = %lf\n", minDist1, minDist2, minDist1 / minDist2);
-        printf("%lf / %lf = %lf\n", minDist2, minDist1, minDist2 / minDist1);
+//        printf("%lf / %lf = %lf\n", minDist1, minDist2, minDist1 / minDist2);
+//        printf("%lf / %lf = %lf\n", minDist2, minDist1, minDist2 / minDist1);
 
         if(minDist1 / minDist2 < 0.8){
             //отрисовываем линии для "похожих" дескрипторов рандомными цветами
@@ -306,7 +304,9 @@ void Lab_5(){
                             )
                         );
 
-            printf("%d = %d\n",i,minJ1);
+            printf("%d = %d ",i,minJ1);
+            printf("(x = %d; y = %d) ",descriptors1[i].getInterestingPoint().x_,descriptors1[i].getInterestingPoint().y_);
+            printf("(x = %d; y = %d)\n",descriptors2[minJ1].getInterestingPoint().x_,descriptors2[minJ1].getInterestingPoint().y_);
 
         }
 

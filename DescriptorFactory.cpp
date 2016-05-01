@@ -13,6 +13,7 @@ DescriptorFactory::DescriptorFactory(const MyQImage &image)
     for(int x = 0; x < image.getWidth(); x++){
         for(int y = 0; y < image.getHeight(); y++){
             Pfi.setPixel(x,y, atan2(dy.getPixel(x,y), dx.getPixel(x,y)) * 180.0 / M_PI + 180.0);
+            //printf("%lf ",Pfi.getPixel(x,y));
         }
     }
 
@@ -30,51 +31,44 @@ Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
     int bin;                                        //номер корзины
     int relatedBin;                                 //номер смежной корзины
     int nGist = 0;                                  //номер гистограммы
-    int nPart = 2;                                  //кол-во частей гистограммы по 1-ой оси
+    int koef = 2;
     double disToCurCen;                             //дистанция до текущего центра
     double disToRelCen;                             //дистанция до смежного центра
-    //double maxDist = sqrt(wGist * wGist + hGist * hGist);//радиус (окресность) от интересной точки
-    double maxDist = hGist * wGist;
+    int nPart = 4;                                  //кол-во частей гистограммы по 1-ой оси
+    int side = 8;                                   //полусторона области для дескриптора
+    double maxDist = sqrt(side * side + side * side);//радиус (окресность) от интересной точки
 
-    for(double i = -maxDist; i <= maxDist; i++){
-        for(double j = -maxDist; j <= maxDist; j++){
+    for(int i = -side * koef; i < side * koef; i++){
+        for(int j = -side * koef; j < side * koef; j++){
 
-            if(pointDistance((double)i,0.0,(double)j,0.0) <= maxDist){
+            //поворачиваем точку окресности
+            int newI = (i * cos((360.0 - point.alpha_) * M_PI / 180.0) - j * sin((360.0 - point.alpha_) * M_PI / 180.0) + 0.5);
+            int newJ = (i * sin((360.0 - point.alpha_) * M_PI / 180.0) + j * cos((360.0 - point.alpha_) * M_PI / 180.0) + 0.5);
 
-                //поворачиваем точку окресности
-                int newI = (i * cos(-point.alpha_ * M_PI / 180.0) - j * sin(-point.alpha_ * M_PI / 180.0) + 0.5);
-                int newJ = (i * sin(-point.alpha_ * M_PI / 180.0) + j * cos(-point.alpha_ * M_PI / 180.0) + 0.5);
+            if(pointDistance((double)newI,0.0,(double)newJ,0.0) < maxDist){
 
-//                int newI = i;
-//                int newJ = j;
-
-                double localPfi =  Pfi.getPixel(point.x_ + newI, point.y_ + newJ) - point.alpha_;
-                /*if(localPfi > 360) localPfi -= 360;*/
+                double localPfi =  Pfi.getPixel(point.x_ + i, point.y_ + j) - point.alpha_;
+                if(localPfi > 360) localPfi -= 360;
                 if(localPfi < 0) localPfi += 360;
 
                 double localBinCenter;
 
-                int doubleMaxDist = (int)maxDist * 2;
+                int doubleMaxDist = side * 2;
 
-                //сдвигаем -maxDist в 0,0;
-                int Ix = newI + maxDist;
-                int Iy = newJ + maxDist;
-                int x = Ix / (doubleMaxDist / nPart + 1);
-                int y = Iy / (doubleMaxDist / nPart + 1);
+                //узнаём номер гистограммы
+                int Ix = newI + side;
+                int Iy = newJ + side;
+
+                if(newI < -side) Ix = 0;
+                if(newJ < -side) Iy = 0;
+
+                if(newI >= side) Ix = (side - 1) + side;
+                if(newJ >= side) Iy = (side - 1) + side;
+
+                int x = Ix / (doubleMaxDist / nPart);
+                int y = Iy / (doubleMaxDist / nPart);
 
                 nGist = x * nPart + y;
-
-               /* if(newI > 0 && newJ > 0)   nGist = 0;     //верхний левый
-                if(newI <= 0 && newJ > 0)  nGist = 1;     //верхний правый
-                if(newI > 0 && newJ <= 0)  nGist = 2;     //нижний левый
-                if(newI <= 0 && newJ <= 0) nGist = 3;     //нижний правый*/
-
-
-                //----------------!!!----------------\\
-                //вот тут как раз и ошибка с вычислением части дескриптора из за координаты 0
-                //не понятно куда её пихать, если делать, что в дескрип. только одна часть,
-                //но "длинная" из 36 корзин, то поворот считается норм
-                //nGist = 0;
 
                 //узнаём номер текущей корзины
                 bin = (localPfi / binSize + 0.5);
@@ -94,8 +88,8 @@ Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
 
                 //Обратнопропорционально распределяем L между центрами
                 //2-х смежных корзин, исходя из расстояния
-                result.addGistValue(nGist, bin,        L.getPixel(point.x_ + newI, point.y_ + newJ) * (1 - disToCurCen / binSize));
-                result.addGistValue(nGist, relatedBin, L.getPixel(point.x_ + newI, point.y_ + newJ) * (1 - disToRelCen / binSize));
+                result.addGistValue(nGist, bin,        L.getPixel(point.x_ + i, point.y_ + j) * (1 - disToCurCen / binSize));
+                result.addGistValue(nGist, relatedBin, L.getPixel(point.x_ + i, point.y_ + j) * (1 - disToRelCen / binSize));
             }
 
         }
@@ -117,18 +111,20 @@ std::vector<InterestingPoint> DescriptorFactory::getOrientationIntrPoint(const s
     int relatedBin;                                 //номер смежной корзины
     double disToCurCen;                             //дистанция до текущего центра
     double disToRelCen;                             //дистанция до смежного центра
-    double maxDist = sqrt(wGist * wGist + hGist * hGist);//радиус (окресность) от интересной точки
     double localBin[localNBin];
+    int side = 8;                                   //полусторона области для дескриптора
+    double maxDist = sqrt(side * side + side * side);//радиус (окресность) от интересной точки
+    int koef = 2;
 
     for(int k = 0; k < _points.size(); k++){
 
         std::fill(localBin, localBin + localNBin, 0.0);
 
-        for(int i = -maxDist * 3; i < maxDist * 3; i++){
-            for(int j = -maxDist * 3; j < maxDist * 3; j++){
+        for(int i = -side * koef; i < side * koef; i++){
+            for(int j = -side * koef; j < side * koef; j++){
 
                 //если точка попала в радиус, раскидываем по корзинам
-                if(pointDistance((double)i,0.0,(double)j,0.0) <= maxDist * 2){
+                if(pointDistance((double)i,0.0,(double)j,0.0) < maxDist){
 
                     double localPfi = Pfi.getPixel(_points[k].x_ + i, _points[k].y_ + j);
                     double localBinCenter;

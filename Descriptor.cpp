@@ -5,6 +5,7 @@ Descriptor::Descriptor(InterestingPoint point)
     point_.x_ = point.x_;
     point_.y_ = point.y_;
     point_.value_ = point.value_;
+    point_.alpha_ = point.alpha_;
 
     for(int i = 0; i < nGistBin; i++){
         for(int j = 0; j < nBin; j++){
