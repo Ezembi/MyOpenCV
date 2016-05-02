@@ -107,10 +107,18 @@ public:
             double k
             ) const;
 
+    double HarrisForPoint(InterestingPoint point);
+
     MyQImage convolution(
             const double* kernel,
             int u,
             int v
+            ) const;                                    //свёртка
+
+    double convolutionForPoint(
+            const double* kernel,
+            int x,
+            int y
             ) const;                                    //свёртка
 
     MyQImage convolution(

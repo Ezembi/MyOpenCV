@@ -599,6 +599,32 @@ std::vector<InterestingPoint> MyQImage::Harris(int _dx, int _dy, double T, doubl
 
 }
 
+double MyQImage::HarrisForPoint(InterestingPoint point)
+{
+    int _dx = 3, _dy = 3;
+    double k = 0.06;
+    double a = 0, b = 0, c = 0;
+    double Ix, Iy;
+
+    for(int dx = -_dx; dx < _dx; dx++){
+        for(int dy = -_dy; dy < _dy; dy++){
+
+            Ix = convolutionForPoint(&kernelSobelX[0][0], point.x_ + dx, point.y_ + dy);
+            Iy = convolutionForPoint(&kernelSobelY[0][0], point.x_ + dx, point.y_ + dy);
+
+            a += Ix * Ix;
+            b += Ix * Iy;
+            c += Iy * Iy;
+        }
+    }
+
+    double det = a * c - b * b;
+    double trace = a + c;
+    double f = det - k * trace * trace;
+
+    return f;
+}
+
 MyQImage MyQImage::convolution(const double *kernel, int u, int v) const
 {
     MyQImage resultImage = *this;
@@ -634,6 +660,18 @@ MyQImage MyQImage::convolution(const double *kernel, int u, int v) const
     }
 
     return resultImage;
+}
+
+double MyQImage::convolutionForPoint(const double *kernel, int x, int y) const
+{
+    double result = 0;
+    int n = 8;
+    for(int i = -1 ; i <= 1; i++) {
+        for(int j = -1; j <= 1; j++, n--){
+            result += (kernel[n] * getPixel(x + i, y + j));
+        }
+    }
+    return result;
 }
 
 MyQImage MyQImage::convolution(const double *row, const double *column, int u, int v) const

@@ -30,7 +30,7 @@ double Descriptor::getGistValue(int nGist, int bin) const
     return gist_[getIndex(bin, nBin, nGist)];
 }
 
-InterestingPoint Descriptor::getInterestingPoint() const
+const InterestingPoint &Descriptor::getInterestingPoint() const
 {
     return point_;
 }

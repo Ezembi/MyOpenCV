@@ -14,7 +14,7 @@ public:
     void addGistValue(int nGist, int bin, double addValue);
     double getGistValue(int nGist, int bin) const;
 
-    InterestingPoint getInterestingPoint() const;
+    const InterestingPoint &getInterestingPoint() const;
 
     double getDistance(const Descriptor& descriptor) const;
 

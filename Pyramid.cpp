@@ -15,7 +15,6 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
     deltaSigma = sqrt(sigma * sigma - 0.8 * 0.8);
 
     tmpImage = Image.gaussianFilter(deltaSigma);            //фильтруем гаусом до sigma 0
-    //tmpImage.normalizeTo0_1();
 
     for(int i = 0; i < octave; i++){
 
@@ -30,15 +29,11 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
             deltaSigma = sqrt(levelSigma * levelSigma - sigma * sigma);
 
             levelImage = tmpImage.gaussianFilter(deltaSigma);
-            printf("g = %lf\n", levelSigma);
-
-            //levelImage.normalizeTo0_1();    //нормируем,
-            //иначе: (level - 1) = ~0.X...; level = ~0.0000X...; (level + 1) = ~ 0.00000000X...
+            //printf("g = %lf\n", levelSigma);
 
             PyramidLevel Level(levelImage, deltaSigma, levelSigma, level);
             octaves.addLevel(Level);
 
-            //            tmpImage.copy(levelImage);
             tmpImage = levelImage;
 
             sigma = levelSigma;
@@ -48,7 +43,6 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
 
         tmpImage.resizeAndCopy(levelImage, qRound((double)levelImage.getWidth() / 2.0), qRound((double)levelImage.getHeight() / 2.0));
         levelImage = tmpImage;
-        //        levelImage.copy(tmpImage);
     }
 
     printf("Pyramid OK!\n");

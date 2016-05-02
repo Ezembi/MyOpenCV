@@ -32,6 +32,7 @@ int PyramidOctave::getLevelNumber(int i) const
 
 std::vector<InterestingPoint> PyramidOctave::octaveDoG()
 {
+    double T = 0.001;
     for(int i = 0; i < levels.size() - 1; i++){
         levels[i].Subtraction(levels[i + 1]);
     }
@@ -73,15 +74,22 @@ std::vector<InterestingPoint> PyramidOctave::octaveDoG()
                         //с минусом - чёрные
                         //с + белые
                     } else {
-                        printf("%lf ", pixel);
+                       // printf("%lf ", pixel);
                         InterestingPoint blob(
-                                    x * pow(2,n_),
-                                    y * pow(2,n_),
+                                    x,
+                                    y,
                                     sqrt(2.0) * pow(2,n_) * levels[i].getGlobalSigma(),
                                     pixel,
                                     0.0
                                     );
-                        blobs.push_back(blob);
+                        double harris = levels[i].HarrisForPoint(blob);
+                        printf("%lf ", harris);
+
+                        if(fabs(harris) > T){
+                            blob.x_ = x * pow(2,n_);
+                            blob.y_ = y * pow(2,n_);
+                            blobs.push_back(blob);
+                        }
                     }
                 }
             }

@@ -20,6 +20,7 @@ public:
     int getHeight() const;
     double getPixel(int x, int y);
     void Subtraction(const PyramidLevel& level);    //вычитание из данного уровня "level" и запись результата в данный уровень
+    double HarrisForPoint(InterestingPoint point);
 };
 
 #endif // PYRAMIDLEVEL_H

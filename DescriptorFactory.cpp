@@ -9,16 +9,11 @@ DescriptorFactory::DescriptorFactory(const MyQImage &image)
     MyQImage dx = image.sobel("X");
     MyQImage dy = image.sobel("Y");
 
-
     for(int x = 0; x < image.getWidth(); x++){
         for(int y = 0; y < image.getHeight(); y++){
             Pfi.setPixel(x,y, atan2(dy.getPixel(x,y), dx.getPixel(x,y)) * 180.0 / M_PI + 180.0);
-            //printf("%lf ",Pfi.getPixel(x,y));
         }
     }
-
-    Pfi.saveImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\pfi.bmp");
-
     printf("DescriptorFactory OK\n");
 
 }
@@ -101,9 +96,37 @@ Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
     return result;
 }
 
-std::vector<InterestingPoint> DescriptorFactory::getOrientationIntrPoint(const std::vector<InterestingPoint> &_points)
+std::vector<Descriptor> DescriptorFactory::getDescriptors(const std::vector<InterestingPoint> &_points)
+{
+    std::vector<InterestingPoint> points = getOrientation(_points);
+    std::vector<Descriptor> descriptors;
+    for(int i = 0; i < points.size(); i++){
+        descriptors.push_back(getDescrIntrPoint(points[i]));
+    }
+    return descriptors;
+}
+
+std::vector<InterestingPoint> DescriptorFactory::getOrientation(const std::vector<InterestingPoint> &_points)
 {
     std::vector<InterestingPoint> points;
+    std::pair<InterestingPoint, InterestingPoint> result;
+
+    for(int k = 0; k < _points.size(); k++){
+
+        result = getOrientationIntrPoint(_points[k]);
+
+        points.push_back(result.first);
+        if(result.second.x_ != 0 && result.second.y_ != 0){
+            points.push_back(result.second);
+        }
+    }
+
+    return points;
+}
+
+std::pair<InterestingPoint, InterestingPoint> DescriptorFactory::getOrientationIntrPoint(const InterestingPoint &_points)
+{
+    std::pair<InterestingPoint, InterestingPoint> result;
 
     int localNBin = 36;
     double binSize = 360.0 / (double)localNBin;     //1/36 от 360 - размер в градусах одной корзины
@@ -116,81 +139,80 @@ std::vector<InterestingPoint> DescriptorFactory::getOrientationIntrPoint(const s
     double maxDist = sqrt(side * side + side * side);//радиус (окресность) от интересной точки
     int koef = 2;
 
-    for(int k = 0; k < _points.size(); k++){
 
-        std::fill(localBin, localBin + localNBin, 0.0);
+    std::fill(localBin, localBin + localNBin, 0.0);
 
-        for(int i = -side * koef; i < side * koef; i++){
-            for(int j = -side * koef; j < side * koef; j++){
+    for(int i = -side * koef; i < side * koef; i++){
+        for(int j = -side * koef; j < side * koef; j++){
 
-                //если точка попала в радиус, раскидываем по корзинам
-                if(pointDistance((double)i,0.0,(double)j,0.0) < maxDist){
+            //если точка попала в радиус, раскидываем по корзинам
+            if(pointDistance((double)i,0.0,(double)j,0.0) < maxDist){
 
-                    double localPfi = Pfi.getPixel(_points[k].x_ + i, _points[k].y_ + j);
-                    double localBinCenter;
+                double localPfi = Pfi.getPixel(_points.x_ + i, _points.y_ + j);
+                double localBinCenter;
 
-                    //узнаём номер текущей корзины (+0.5 для более правильного округления)
-                    bin = (localPfi / binSize + 0.5);
+                //узнаём номер текущей корзины (+0.5 для более правильного округления)
+                bin = (localPfi / binSize + 0.5);
 
-                    //смежная корзина = следующая, для localPfi >= localBinCenter
-                    relatedBin = bin + 1;
+                //смежная корзина = следующая, для localPfi >= localBinCenter
+                relatedBin = bin + 1;
 
-                    //узнаём центр текущей корзины
-                    localBinCenter = (double)bin * binSize + binSize / 2.0;
+                //узнаём центр текущей корзины
+                localBinCenter = (double)bin * binSize + binSize / 2.0;
 
-                    //узнаём смежную корзину, для localPfi < localBinCenter (предидущая корзина)
-                    if(localPfi < localBinCenter) relatedBin = bin - 1;
+                //узнаём смежную корзину, для localPfi < localBinCenter (предидущая корзина)
+                if(localPfi < localBinCenter) relatedBin = bin - 1;
 
-                    //узнаём расстояния
-                    disToCurCen = abs(localBinCenter - localPfi);
-                    disToRelCen = binSize - disToCurCen;
+                //узнаём расстояния
+                disToCurCen = abs(localBinCenter - localPfi);
+                disToRelCen = binSize - disToCurCen;
 
-                    //Обратнопропорционально распределяем L между центрами
-                    //2-х смежных корзин, исходя из расстояния
-                    localBin[bin       ] += L.getPixel(_points[k].x_ + i, _points[k].y_ + j) * (1 - disToCurCen / binSize);
-                    localBin[relatedBin] += L.getPixel(_points[k].x_ + i, _points[k].y_ + j) * (1 - disToRelCen / binSize);
+                //Обратнопропорционально распределяем L между центрами
+                //2-х смежных корзин, исходя из расстояния
+                localBin[bin       ] += L.getPixel(_points.x_ + i, _points.y_ + j) * (1 - disToCurCen / binSize);
+                localBin[relatedBin] += L.getPixel(_points.x_ + i, _points.y_ + j) * (1 - disToRelCen / binSize);
 
-                }
             }
-        }
-
-        //найдём максимальный
-        double max = -1;
-        int maxI = -1;
-        for(int i = 0; i < localNBin; i++){
-            if(localBin[i] > max){
-                max = localBin[i];
-                maxI = i;
-            }
-        }
-
-        //добавляем
-        InterestingPoint point(
-                    _points[k].x_,
-                    _points[k].y_,
-                    _points[k].value_,
-                    (double)maxI * binSize
-                    );
-        points.push_back(point);
-
-        //найдём 2-ой по максимуму
-        double max80 = -1;
-        int maxI80 = -1;
-        for(int i = 0; i < localNBin; i++){
-            if(i != maxI){
-                if(localBin[i] > max80){
-                    max80 = localBin[i];
-                    maxI80 = i;
-                }
-            }
-        }
-
-        //если второй больше 80% от первого максимума, то добовляем вторую интересную точку
-        if((max80 * 100.0) / max >= 80 && maxI80 != -1){
-            InterestingPoint point(_points[k].x_, _points[k].y_, _points[k].value_, (double)maxI80 * binSize);
-            points.push_back(point);
         }
     }
 
-    return points;
+    //найдём максимальный
+    double max = -1;
+    int maxI = -1;
+    for(int i = 0; i < localNBin; i++){
+        if(localBin[i] > max){
+            max = localBin[i];
+            maxI = i;
+        }
+    }
+
+    //добавляем
+    InterestingPoint point(
+                _points.x_,
+                _points.y_,
+                _points.value_,
+                (double)maxI * binSize
+                );
+    result.first = point;
+
+    //найдём 2-ой по максимуму
+    double max80 = -1;
+    int maxI80 = -1;
+    for(int i = 0; i < localNBin; i++){
+        if(i != maxI){
+            if(localBin[i] > max80){
+                max80 = localBin[i];
+                maxI80 = i;
+            }
+        }
+    }
+
+    //если второй больше 80% от первого максимума, то добовляем вторую интересную точку
+    if((max80 * 100.0) / max >= 80 && maxI80 != -1){
+        InterestingPoint point(_points.x_, _points.y_, _points.value_, (double)maxI80 * binSize);
+        result.second = point;
+    }
+
+
+    return result;
 }

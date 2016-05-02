@@ -55,3 +55,8 @@ void PyramidLevel::Subtraction(const PyramidLevel &level)
         }
     }
 }
+
+double PyramidLevel::HarrisForPoint(InterestingPoint point)
+{
+    return image_.HarrisForPoint(point);
+}
