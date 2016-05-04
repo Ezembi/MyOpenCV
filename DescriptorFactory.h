@@ -10,9 +10,12 @@ class DescriptorFactory
 private:
     MyQImage L;
     MyQImage Pfi;
+    int octave_;
+    int level_;
 
 public:
     DescriptorFactory(const MyQImage& image);
+    DescriptorFactory(const MyQImage& image, int octave, int level);
     std::vector<Descriptor> getDescriptors(const std::vector<InterestingPoint> &_points);
     Descriptor getDescrIntrPoint(const InterestingPoint point);
 

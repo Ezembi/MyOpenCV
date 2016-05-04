@@ -14,6 +14,7 @@ public:
     void savePyramid(const QString path) const;
     void addOctrve(PyramidOctave& octave);
     int nOctave() const;
+    int nLevel(int nOctave) const;
     MyQImage getImage(int nOctav, int nLevel) const;
     std::vector<InterestingPoint> getBlobs();                                 //DoG для всей пирамиды и перезаписи пирамиды
 };

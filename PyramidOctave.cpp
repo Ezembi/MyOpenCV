@@ -79,15 +79,15 @@ std::vector<InterestingPoint> PyramidOctave::octaveDoG()
                                     x,
                                     y,
                                     sqrt(2.0) * pow(2,n_) * levels[i].getGlobalSigma(),
+                                    getNumberOctave(),
+                                    i,
                                     pixel,
                                     0.0
                                     );
                         double harris = levels[i].HarrisForPoint(blob);
-                        printf("%lf ", harris);
+                        //printf("%lf ", harris);
 
                         if(fabs(harris) > T){
-                            blob.x_ = x * pow(2,n_);
-                            blob.y_ = y * pow(2,n_);
                             blobs.push_back(blob);
                         }
                     }

@@ -683,7 +683,7 @@ MyQImage MyQImage::convolution(const double *row, const double *column, int u, i
     return resultImage2;
 }
 
-QImage MyQImage::getQImage()
+QImage MyQImage::getQImage() const
 {
     QImage Picture(getWidth(),getHeight(),format_);
     for(int y = 0; y < getHeight(); y++){

@@ -74,6 +74,11 @@ int Pyramid::nOctave() const
     return octaves.size();
 }
 
+int Pyramid::nLevel(int nOctave) const
+{
+    return octaves[nOctave].nLevels();
+}
+
 MyQImage Pyramid::getImage(int nOctav, int nLevel) const
 {
     return octaves[nOctav].getLevelImage(nLevel);

@@ -128,7 +128,7 @@ public:
             int v
             ) const;                                    //сепарабельная свёртка
 
-    QImage getQImage();
+    QImage getQImage() const;
 
     void saveImage(QString file);                       //сохранение изображение
     void saveImage(

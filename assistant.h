@@ -12,12 +12,16 @@ struct InterestingPoint
     int x_, y_, r_;
     double value_;
     double alpha_;
+    int octave_;
+    int level_;
 
     InterestingPoint()
     {
         x_ = 0;
         y_ = 0;
-        r_ = 0;
+        r_ = 10;
+        octave_ = -1;
+        level_ = -1;
         value_ = 0.0;
         alpha_ = 0.0;
     }
@@ -26,7 +30,9 @@ struct InterestingPoint
     {
         x_ = x;
         y_ = y;
-        r_ = 0;
+        r_ = 10;
+        octave_ = -1;
+        level_ = -1;
         value_ = value;
         alpha_ = 0.0;
     }
@@ -35,7 +41,9 @@ struct InterestingPoint
     {
         x_ = x;
         y_ = y;
-        r_ = 0;
+        r_ = 10;
+        octave_ = -1;
+        level_ = -1;
         value_ = value;
         alpha_ = alpha;
     }
@@ -45,6 +53,19 @@ struct InterestingPoint
         x_ = x;
         y_ = y;
         r_ = r;
+        octave_ = -1;
+        level_ = -1;
+        value_ = value;
+        alpha_ = alpha;
+    }
+
+    InterestingPoint(int x, int y, int r, int octave, int level, double value, double alpha)
+    {
+        x_ = x;
+        y_ = y;
+        r_ = r;
+        octave_ = octave;
+        level_ = level;
         value_ = value;
         alpha_ = alpha;
     }

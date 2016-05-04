@@ -6,6 +6,9 @@ DescriptorFactory::DescriptorFactory(const MyQImage &image)
     L = image.sobel("All");
     Pfi.copy(image);
 
+    octave_ = -1;
+    level_ = -1;
+
     MyQImage dx = image.sobel("X");
     MyQImage dy = image.sobel("Y");
 
@@ -16,6 +19,26 @@ DescriptorFactory::DescriptorFactory(const MyQImage &image)
     }
     printf("DescriptorFactory OK\n");
 
+}
+
+DescriptorFactory::DescriptorFactory(const MyQImage &image, int octave, int level)
+{
+    printf("Start: DescriptorFactory for octave #%d, level #%d (X = %d, Y = %d)\n", octave, level, image.getWidth(), image.getHeight());
+    L = image.sobel("All");
+    Pfi.copy(image);
+
+    octave_ = octave;
+    level_ = level;
+
+    MyQImage dx = image.sobel("X");
+    MyQImage dy = image.sobel("Y");
+
+    for(int x = 0; x < image.getWidth(); x++){
+        for(int y = 0; y < image.getHeight(); y++){
+            Pfi.setPixel(x,y, atan2(dy.getPixel(x,y), dx.getPixel(x,y)) * 180.0 / M_PI + 180.0);
+        }
+    }
+    printf("DescriptorFactory OK\n");
 }
 
 Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
@@ -101,7 +124,11 @@ std::vector<Descriptor> DescriptorFactory::getDescriptors(const std::vector<Inte
     std::vector<InterestingPoint> points = getOrientation(_points);
     std::vector<Descriptor> descriptors;
     for(int i = 0; i < points.size(); i++){
-        descriptors.push_back(getDescrIntrPoint(points[i]));
+        if(octave_ == -1 && level_ == -1){
+            descriptors.push_back(getDescrIntrPoint(points[i]));
+        } else if(octave_ == points[i].octave_ && level_ == points[i].level_){
+            descriptors.push_back(getDescrIntrPoint(points[i]));
+        }
     }
     return descriptors;
 }
@@ -112,12 +139,22 @@ std::vector<InterestingPoint> DescriptorFactory::getOrientation(const std::vecto
     std::pair<InterestingPoint, InterestingPoint> result;
 
     for(int k = 0; k < _points.size(); k++){
+        if(octave_ == -1 && level_ == -1){
 
-        result = getOrientationIntrPoint(_points[k]);
+            result = getOrientationIntrPoint(_points[k]);
+            points.push_back(result.first);
+            if(result.second.x_ != 0 && result.second.y_ != 0){
+                points.push_back(result.second);
+            }
 
-        points.push_back(result.first);
-        if(result.second.x_ != 0 && result.second.y_ != 0){
-            points.push_back(result.second);
+        } else if(octave_ == _points[k].octave_ && level_ == _points[k].level_){
+
+            result = getOrientationIntrPoint(_points[k]);
+            points.push_back(result.first);
+            if(result.second.x_ != 0 && result.second.y_ != 0){
+                points.push_back(result.second);
+            }
+
         }
     }
 
@@ -190,6 +227,9 @@ std::pair<InterestingPoint, InterestingPoint> DescriptorFactory::getOrientationI
     InterestingPoint point(
                 _points.x_,
                 _points.y_,
+                _points.r_,
+                _points.octave_,
+                _points.level_,
                 _points.value_,
                 (double)maxI * binSize
                 );
@@ -209,7 +249,15 @@ std::pair<InterestingPoint, InterestingPoint> DescriptorFactory::getOrientationI
 
     //если второй больше 80% от первого максимума, то добовляем вторую интересную точку
     if((max80 * 100.0) / max >= 80 && maxI80 != -1){
-        InterestingPoint point(_points.x_, _points.y_, _points.value_, (double)maxI80 * binSize);
+        InterestingPoint point(
+                    _points.x_,
+                    _points.y_,
+                    _points.r_,
+                    _points.octave_,
+                    _points.level_,
+                    _points.value_,
+                    (double)maxI80 * binSize
+                    );
         result.second = point;
     }
 

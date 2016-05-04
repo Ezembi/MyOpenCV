@@ -4,6 +4,9 @@ Descriptor::Descriptor(InterestingPoint point)
 {
     point_.x_ = point.x_;
     point_.y_ = point.y_;
+    point_.r_ = point.r_,
+    point_.octave_ = point.octave_,
+    point_.level_ = point.level_,
     point_.value_ = point.value_;
     point_.alpha_ = point.alpha_;
 
