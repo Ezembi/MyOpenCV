@@ -69,11 +69,11 @@ std::vector<InterestingPoint> PyramidOctave::octaveDoG()
                 }
 
                 if(max || min){
-                    if(pixel > -0.015 && pixel < 0.015){
+                    /*if(pixel > -0.015 && pixel < 0.015){
                         //отбрасываем "мусор"
                         //с минусом - чёрные
                         //с + белые
-                    } else {
+                    } else*/ {
                        // printf("%lf ", pixel);
                         InterestingPoint blob(
                                     x,

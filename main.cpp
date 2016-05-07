@@ -25,29 +25,30 @@ int main(int argc, char *argv[])
 
 //Собель
 void Lab_1(){
-    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z22.jpg");
-    MyQImage originalImage = resultImage;
-    //originalImage = resultImage.blur();
-    //originalImage = resultImage.sharpness();
-    originalImage = resultImage.sobel("All");
-    resultImage.verticalSwap();
-    resultImage.horizontalSwap();
-    originalImage.saveImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\2.bmp");
+    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2.jpg");
+    MyQImage sobleX = resultImage.sobel("X");
+    MyQImage sobleY = resultImage.sobel("Y");
+    MyQImage sobleAll = resultImage.sobel("All");
+
+    sobleX.saveImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\sobleX.bmp");
+    sobleY.saveImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\sobleY.bmp");
+    sobleAll.saveImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\sobleAll.bmp");
     resultImage.saveImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\3.bmp");
 }
 
 //Гаусс, Пирамиды
 void Lab_2(){
-    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\Lenna.bmp");
-
-    Pyramid pyramid(resultImage, 1.6, 5, 5);
-    pyramid.savePyramid("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\1\\");
+    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2.jpg");
+    MyQImage gaus = resultImage.gaussianFilter(10);
+    gaus.saveImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\gaus.bmp");
+    //Pyramid pyramid(resultImage, 1.6, 5, 5);
+    //pyramid.savePyramid("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\1\\");
 }
 
 //Операторы точек интереса
 void Lab_3(){
-    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\custle.jpg");
-    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\Lenna.bmp");
+    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2.jpg");
+    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2.jpg");
 
     MyQImage originalImage1 = image1;
     originalImage1.saveImage(
@@ -206,8 +207,8 @@ void Lab_5(){
 
 //Блобы
 void Lab_6(){
-    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
-    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130s.jpg");
+    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
+    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2d2.bmp");
 //    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\b.jpg");
 //    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\c1.bmp");
 
@@ -251,7 +252,7 @@ void Lab_6(){
         }
     }
 
-    draw2Image(resultImage1, resultImage2, descriptors1, descriptors2, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboBlob1.bmp");
+    draw2Image(resultImage1, resultImage2, descriptors1, descriptors2, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboBlob0.bmp");
 }
 
 void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vector<Descriptor> &descriptors1, const std::vector<Descriptor> &descriptors2, QString saveFileName){
@@ -383,10 +384,12 @@ void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vecto
 
             int x0 = descriptors1[i].getInterestingPoint().x_;
             int y0 = descriptors1[i].getInterestingPoint().y_;
+            int r0 = descriptors1[i].getInterestingPoint().r_;
             int octave0 = descriptors1[i].getInterestingPoint().octave_;
 
             int x1 = descriptors2[minJ1].getInterestingPoint().x_;
             int y1 = descriptors2[minJ1].getInterestingPoint().y_;
+            int r1 = descriptors2[minJ1].getInterestingPoint().r_;
             int octave1 = descriptors2[minJ1].getInterestingPoint().octave_;
 
             if(octave0 != -1){
@@ -401,16 +404,22 @@ void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vecto
 
             x1 += qIamqe1.width();
 
-            painter.drawLine(
-                        QPoint(
-                            x0,
-                            y0
-                            ),
-                        QPoint(
-                            x1,
-                            y1
-                            )
-                        );
+            if(octave != -1){
+                painter.drawEllipse(
+                                x0 - r0/2,
+                                y0 - r0/2,
+                                r0,
+                                r0
+                            );
+                painter.drawEllipse(
+                                x1 - r1/2,
+                                y1 - r1/2,
+                                r1,
+                                r1
+                            );
+            }
+
+            painter.drawLine(QPoint(x0, y0), QPoint(x1, y1));
         }
     }
 

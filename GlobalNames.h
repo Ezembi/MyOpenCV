@@ -36,8 +36,7 @@ double const kernelSobelY[3][3] = {
 
 int const nBin = 8;                    //кол-во корзин для одной части дескриптора
 int const nGistBin = 16;               //кол-во гистограмм для дескриптора
-int const wGist = 4;                   //ширина гистограммы
-int const hGist = 4;                   //высота гистограммы
+int const gistSide = 4;                //сторона (ширина / высота) гистограммы
 
 #endif // DEFINES
 

@@ -74,8 +74,8 @@ Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
                 int doubleMaxDist = side * 2;
 
                 //узнаём номер гистограммы
-                int Ix = newI + side;
-                int Iy = newJ + side;
+                int Ix = newI + side;       //переводим х из -side <= x <= side в 0 <= x <= side * 2
+                int Iy = newJ + side;       //переводим y из -side <= y <= side в 0 <= y <= side * 2
 
                 if(newI < -side) Ix = 0;
                 if(newJ < -side) Iy = 0;
@@ -86,30 +86,60 @@ Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
                 int x = Ix / (doubleMaxDist / nPart);
                 int y = Iy / (doubleMaxDist / nPart);
 
-                nGist = x * nPart + y;
+//                nGist = x * nPart + y;
 
                 //узнаём номер текущей корзины
                 bin = (localPfi / binSize + 0.5);
 
-                //смежная корзина = следующая, для localPfi >= localBinCenter
-                relatedBin = bin + 1;
+//                //смежная корзина = следующая, для localPfi >= localBinCenter
+//                relatedBin = bin + 1;
 
-                //узнаём центр текущей корзины
-                localBinCenter = (double)bin * binSize + binSize / 2.0;
+//                //узнаём центр текущей корзины
+//                localBinCenter = (double)bin * binSize + binSize / 2.0;
 
-                //узнаём смежную корзину, для localPfi < localBinCenter (предидущая корзина)
-                if(localPfi < localBinCenter) relatedBin = bin - 1;
+//                //узнаём смежную корзину, для localPfi < localBinCenter (предидущая корзина)
+//                if(localPfi < localBinCenter) relatedBin = bin - 1;
 
-                //узнаём расстояния
-                disToCurCen = abs(localBinCenter - localPfi);
-                disToRelCen = binSize - disToCurCen;
+//                //узнаём расстояния
+//                disToCurCen = abs(localBinCenter - localPfi);
+//                disToRelCen = binSize - disToCurCen;
 
-                //Обратнопропорционально распределяем L между центрами
-                //2-х смежных корзин, исходя из расстояния
-                result.addGistValue(nGist, bin,        L.getPixel(point.x_ + i, point.y_ + j) * (1 - disToCurCen / binSize));
-                result.addGistValue(nGist, relatedBin, L.getPixel(point.x_ + i, point.y_ + j) * (1 - disToRelCen / binSize));
+//                //Обратнопропорционально распределяем L между центрами
+//                //2-х смежных корзин, исходя из расстояния
+//                result.addGistValue(nGist, bin,        L.getPixel(point.x_ + i, point.y_ + j) * (1 - disToCurCen / binSize));
+//                result.addGistValue(nGist, relatedBin, L.getPixel(point.x_ + i, point.y_ + j) * (1 - disToRelCen / binSize));
+
+
+                  /////////////////
+                 //    Lab_7    //
+                /////////////////
+                double localL = L.getPixel(point.x_ + i, point.y_ + j);
+                for(int xx = x - 1; xx <= x; xx++){
+
+                    if(xx < 0 || xx >= nPart) continue;
+                    int xCenter = gistSide * xx + gistSide / 2;
+                    double Lx = abs(Ix - xCenter);
+                    double Wx = 1 - Lx / gistSide;
+
+                    for(int yy = y - 1; yy <= y; yy++){
+
+                        if(yy < 0 || yy >= nPart) continue;
+                        int yCenter = gistSide * yy + gistSide / 2;
+                        double Ly = abs(Iy - yCenter);
+                        double Wy = 1 - Ly / gistSide;
+
+                        for(int bins = bin - 1; bins <= bin; bins ++){
+
+                            localBinCenter = (double)bins * binSize + binSize / 2.0;
+                            double La = abs(localBinCenter - localPfi);
+                            double Wa = 1 - La / binSize;
+
+                            nGist = xx * nPart + yy;
+                            result.addGistValue(nGist, bins, localL * Wx * Wy * Wa);
+                        }
+                    }
+                }
             }
-
         }
     }
 
