@@ -1,5 +1,6 @@
 #include <qmath.h>
 #include <QtGlobal>
+#include <GlobalNames.h>
 
 #ifndef ASSISTANT
 #define ASSISTANT
@@ -173,6 +174,8 @@ std::vector<InterestingPoint> static ANMS(std::vector<InterestingPoint> points, 
     printf("ANMS OK\n");
     return points;
 }
+
+
 
 #endif // ASSISTANT
 

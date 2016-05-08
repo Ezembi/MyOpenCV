@@ -9,14 +9,15 @@ void Lab_2();
 void Lab_3();
 void Lab_4();
 void Lab_5();
-void Lab_6();
+void Lab_6_7();
+void Lab_8();
 void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vector<Descriptor> &descriptors1, const std::vector<Descriptor> &descriptors2, QString saveFileName);
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    Lab_6();
+    Lab_8();
 
     printf("\n-=OK=-");
     exit(0);
@@ -175,8 +176,10 @@ void Lab_4(){
 void Lab_5(){
 
     //грузим кртинки
-    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
-    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
+//    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
+//    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
+    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild1.jpg");
+    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild2.jpg");
 
     //кол-во интересных точек
     int nPoint = 300;
@@ -206,11 +209,11 @@ void Lab_5(){
 }
 
 //Блобы
-void Lab_6(){
-    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
-    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2d2.bmp");
-//    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\b.jpg");
-//    MyQImage resultImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\c1.bmp");
+void Lab_6_7(){
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2d2.bmp");
+    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.jpg");
+    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.jpg");
 
     Pyramid pyramid1(resultImage1, 1.6, 7, 5);
 
@@ -253,6 +256,11 @@ void Lab_6(){
     }
 
     draw2Image(resultImage1, resultImage2, descriptors1, descriptors2, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboBlob0.bmp");
+}
+
+//панорама
+void Lab_8(){
+    //to be continued...
 }
 
 void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vector<Descriptor> &descriptors1, const std::vector<Descriptor> &descriptors2, QString saveFileName){
@@ -344,87 +352,54 @@ void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vecto
     }
 
     //поиск "похожих" дескрипторов
-    for(int i = 0; i < descriptors1.size(); i++){
+    std::vector<std::pair<InterestingPoint, InterestingPoint>> pairs = getPairs(descriptors1, descriptors2);
 
-        double minDist1 = descriptors1[i].getDistance(descriptors2[0]);
-        int minJ1 = 0;
-        double minDist2;
-        int minJ2;
-        if(descriptors2.size() > 1){
-            minDist2 = descriptors1[i].getDistance(descriptors2[1]);
-            minJ2 = 1;
-        } else {
-            minDist2 = minDist1;
-            minJ2 = 0;
+    for(int i = 0; i < pairs.size(); i++){
+
+        //отрисовываем линии для "похожих" дескрипторов рандомными цветами
+        QPen pen(QColor(rand()%255 ,rand()%255, rand()%255));
+        painter.setPen(pen);
+
+        int x0 = pairs[i].first.x_;
+        int y0 = pairs[i].first.y_;
+        int r0 = pairs[i].first.r_;
+        int octave0 = pairs[i].first.octave_;
+
+        int x1 = pairs[i].second.x_;
+        int y1 = pairs[i].second.y_;
+        int r1 = pairs[i].second.r_;
+        int octave1 = pairs[i].second.octave_;
+
+        if(octave0 != -1){
+            x0 *= pow(2,octave0);
+            y0 *= pow(2,octave0);
         }
 
-        if(minDist1 > minDist2){
-            std::swap(minDist1, minDist2);
-            std::swap(minJ1, minJ2);
+        if(octave1 != -1){
+            x1 *= pow(2,octave1);
+            y1 *= pow(2,octave1);
         }
 
-        for(int j = 2; j < descriptors2.size(); j++){
+        x1 += qIamqe1.width();
 
-            double dist = descriptors1[i].getDistance(descriptors2[j]);
-
-            if(dist < minDist2){
-                minDist2 = dist;
-                minJ2 = j;
-            }
-
-            if(dist < minDist1){
-                std::swap(minDist1, minDist2);
-                std::swap(minJ1, minJ2);
-            }
+        if(octave != -1){
+            painter.drawEllipse(
+                        x0 - r0/2,
+                        y0 - r0/2,
+                        r0,
+                        r0
+                        );
+            painter.drawEllipse(
+                        x1 - r1/2,
+                        y1 - r1/2,
+                        r1,
+                        r1
+                        );
         }
-        if(minDist1 / minDist2 < 0.8){
-            //отрисовываем линии для "похожих" дескрипторов рандомными цветами
-            QPen pen(QColor(rand()%255 ,rand()%255, rand()%255));
-            painter.setPen(pen);
-
-            int x0 = descriptors1[i].getInterestingPoint().x_;
-            int y0 = descriptors1[i].getInterestingPoint().y_;
-            int r0 = descriptors1[i].getInterestingPoint().r_;
-            int octave0 = descriptors1[i].getInterestingPoint().octave_;
-
-            int x1 = descriptors2[minJ1].getInterestingPoint().x_;
-            int y1 = descriptors2[minJ1].getInterestingPoint().y_;
-            int r1 = descriptors2[minJ1].getInterestingPoint().r_;
-            int octave1 = descriptors2[minJ1].getInterestingPoint().octave_;
-
-            if(octave0 != -1){
-                x0 *= pow(2,octave0);
-                y0 *= pow(2,octave0);
-            }
-
-            if(octave1 != -1){
-                x1 *= pow(2,octave1);
-                y1 *= pow(2,octave1);
-            }
-
-            x1 += qIamqe1.width();
-
-            if(octave != -1){
-                painter.drawEllipse(
-                                x0 - r0/2,
-                                y0 - r0/2,
-                                r0,
-                                r0
-                            );
-                painter.drawEllipse(
-                                x1 - r1/2,
-                                y1 - r1/2,
-                                r1,
-                                r1
-                            );
-            }
-
-            painter.drawLine(QPoint(x0, y0), QPoint(x1, y1));
-        }
+        painter.drawLine(QPoint(x0, y0), QPoint(x1, y1));
     }
 
     painter.end();
 
-//    image.save("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\combo1.bmp");
     image.save(saveFileName);
 }

@@ -32,7 +32,7 @@ int PyramidOctave::getLevelNumber(int i) const
 
 std::vector<InterestingPoint> PyramidOctave::octaveDoG()
 {
-    double T = 0.001;
+    double T = 0.0001;
     for(int i = 0; i < levels.size() - 1; i++){
         levels[i].Subtraction(levels[i + 1]);
     }
