@@ -1,8 +1,9 @@
 #include <QCoreApplication>
-#include<MyQImage.h>
-#include<Pyramid.h>
+#include <MyQImage.h>
+#include <Pyramid.h>
 #include <DescriptorFactory.h>
-#include<iostream>
+#include <iostream>
+#include <DirectLinerTransformation.h>
 
 void Lab_1();
 void Lab_2();
@@ -12,6 +13,9 @@ void Lab_5();
 void Lab_6_7();
 void Lab_8();
 void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vector<Descriptor> &descriptors1, const std::vector<Descriptor> &descriptors2, QString saveFileName);
+void drawPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLinerTransformation dlt, QString saveFileName);
+DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, InterestingPoint>> &pairs);
+
 
 int main(int argc, char *argv[])
 {
@@ -210,10 +214,10 @@ void Lab_5(){
 
 //Блобы
 void Lab_6_7(){
-//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
-//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2d2.bmp");
-    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.jpg");
-    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.jpg");
+    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
+    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2d2.bmp");
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.jpg");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.jpg");
 
     Pyramid pyramid1(resultImage1, 1.6, 7, 5);
 
@@ -260,7 +264,65 @@ void Lab_6_7(){
 
 //панорама
 void Lab_8(){
-    //to be continued...
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.jpg");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.jpg");
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild1.jpg");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild2.jpg");
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.png");
+    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf11.bmp");
+    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf2.bmp");
+
+    Pyramid pyramid1(resultImage1, 1.6, 7, 5);
+
+    std::vector<InterestingPoint> blobs1;
+    blobs1 = pyramid1.getBlobs();
+    std::vector<Descriptor> descriptors1;
+
+    for(int i = 0; i < pyramid1.nOctave(); i++)
+    {
+        for(int j = 0; j < pyramid1.nLevel(i); j++){
+            std::vector<Descriptor> descriptors;
+            DescriptorFactory df(pyramid1.getImage(i,j) ,i ,j);  //фабрика для уровня и октавы
+            descriptors = df.getDescriptors(blobs1);            //дескрипторы уровня и октавы
+
+            for(int k = 0; k < descriptors.size(); k++){
+                //сохраняем дескрипторы для уровня и октавы
+                descriptors1.push_back(descriptors[k]);
+            }
+        }
+    }
+
+    Pyramid pyramid2(resultImage2, 1.6, 7, 5);
+
+    std::vector<InterestingPoint> blobs2;
+    blobs2 = pyramid2.getBlobs();
+    std::vector<Descriptor> descriptors2;
+
+    for(int i = 0; i < pyramid2.nOctave(); i++)
+    {
+        for(int j = 0; j < pyramid2.nLevel(i); j++){
+            std::vector<Descriptor> descriptors;
+            DescriptorFactory df(pyramid2.getImage(i,j) ,i ,j);  //фабрика для уровня и октавы
+            descriptors = df.getDescriptors(blobs2);            //дескрипторы уровня и октавы
+
+            for(int k = 0; k < descriptors.size(); k++){
+                //сохраняем дескрипторы для уровня и октавы
+                descriptors2.push_back(descriptors[k]);
+            }
+        }
+    }
+
+    draw2Image(resultImage1, resultImage2, descriptors1, descriptors2, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboBlob0.bmp");
+
+    //поиск "похожих" дескрипторов
+    std::vector<std::pair<InterestingPoint, InterestingPoint>> pairs = getPairs(descriptors1, descriptors2);
+
+    DirectLinerTransformation dlt = RANSAC(pairs);
+
+    //добавить рансак
+
+    drawPanoram(resultImage1, resultImage2, dlt, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\panoram.bmp");
 }
 
 void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vector<Descriptor> &descriptors1, const std::vector<Descriptor> &descriptors2, QString saveFileName){
@@ -370,15 +432,7 @@ void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vecto
         int r1 = pairs[i].second.r_;
         int octave1 = pairs[i].second.octave_;
 
-        if(octave0 != -1){
-            x0 *= pow(2,octave0);
-            y0 *= pow(2,octave0);
-        }
 
-        if(octave1 != -1){
-            x1 *= pow(2,octave1);
-            y1 *= pow(2,octave1);
-        }
 
         x1 += qIamqe1.width();
 
@@ -402,4 +456,148 @@ void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vecto
     painter.end();
 
     image.save(saveFileName);
+}
+
+void drawPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLinerTransformation dlt, QString saveFileName){
+    //получаем загруженные картинки
+    QImage qIamqe1 = image1.getQImage();
+    QImage qIamqe2 = image2.getQImage();
+
+    //сделаем большОй холст, чтоб не выпасть за край изображения
+    int maxWidth = qIamqe1.width() * 3;
+    int maxHeight =  qIamqe1.height() * 3;
+
+    QImage image(maxWidth, maxHeight, QImage::Format_RGB32);
+
+    QPainter painter;
+    painter.begin(&image);
+    //рисуем второе изображение в центре холста, чтобы первое не выпало за края
+    painter.drawImage(QPoint(maxWidth / 3, maxHeight / 3), qIamqe2);
+
+//    QTransform - ЩИКАРНЕЙЩАЯ хреновина, прмям 10 из 10
+//    QTransform t(ширина                        , сдвиг правого края в низ (+), сдвиг нижней части изображения вправо/влево,
+//                 сдвиг правого края в право (+), высота                      , сдвиг нижней части изображения вверх/вниз,
+//                 сдвиг по х                    , сдвиг по у                  , единичка
+//                 );
+
+    //трансформайия первого изображения, чтоб точно подогнать картинки
+    QTransform t(dlt.h(0,0),dlt.h(1,0),dlt.h(2,0)/2,    //подогпал как батька
+                 dlt.h(0,1),dlt.h(1,1),dlt.h(2,1)/2,    //подогпал как батька
+                 dlt.h(0,2) + maxWidth / 3, dlt.h(1,2) + maxHeight / 3, dlt.h(2,2)
+                 );//не то чтобы 1в1, но на учивление точно \_(^-^)_/
+
+
+//    QTransform t(1, 0, 0,
+//                 0, 1, 0,
+//                 dlt.h(0,2) + maxWidth / 3, dlt.h(1,2) + maxHeight / 3, dlt.h(2,2)
+//                 );//ПОПАЛ!!!
+
+    //применяем рансформацию
+    painter.setTransform(t);
+    painter.drawImage(QPoint(0,0), qIamqe1);
+
+    painter.end();
+    image.save(saveFileName);
+
+}
+
+DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, InterestingPoint>> &pairs){
+    printf("Start: RANSAC\n");
+    srand(time(NULL));
+    DirectLinerTransformation winer;    //лучший DLT
+    int inliersInWiner = 0;             //кол-во совподений в лучшем результате DLT
+    const int nRandomPoints = 20;       //кол-во пар для нахождения наилучшего DLT
+    int randomPoints[nRandomPoints];    //массив рандомных номеров пар
+    const int maxSteps = 1000;          //кол-во шагов
+    const double eps = 3;               //ошибка
+
+    //В отличии от МНК, нет решения за фиксированное число шагов
+    for(int steps = 0; steps < maxSteps; steps++){
+
+        //fortran stile fill :)
+        for(int i = 0; i < nRandomPoints; i++){
+            randomPoints[i] = -1;
+        }
+
+        //рандомные nRandomPoints пары
+        for(int i = 0; i < nRandomPoints; i++){
+            int number;
+            bool goodRandom;
+            do{
+                number = rand()%pairs.size();
+                goodRandom = true;
+                for(int j = 0; j <= i; j++){
+                    if(randomPoints[j] == number){
+                        goodRandom = false;
+                    }
+                }
+            }while(!goodRandom);
+            randomPoints[i] = number;
+        }
+
+        std::vector<std::pair<InterestingPoint, InterestingPoint>> tmp;    //рандомные точки
+
+        for(int i = 0; i < nRandomPoints; i++){
+            tmp.push_back(pairs[randomPoints[i]]);
+        }
+
+        //DTL для рандомных точек
+        DirectLinerTransformation dlt(tmp);
+
+        int localInliers = 0;                                               //кол-во согласных точек
+
+        for(int i = 0; i < pairs.size(); i++){
+
+            std::pair<InterestingPoint, InterestingPoint> currentPair = pairs[i];
+
+            double x0 = currentPair.first.x_;
+            double y0 = currentPair.first.y_;
+            double x1 = currentPair.second.x_;
+            double y1 = currentPair.second.y_;
+
+            //считаем куда точка из 1-го изображения "легла" на 2-ое (лекция 5 стр 21)
+            double newX = (dlt.h(0,0) * x0 + dlt.h(0,1) * y0 + dlt.h(0,2)) / ((dlt.h(2,0) * x0 + dlt.h(2,1) * y0 + dlt.h(2,2)));
+            double newY = (dlt.h(1,0) * x0 + dlt.h(1,1) * y0 + dlt.h(1,2)) / ((dlt.h(2,0) * x0 + dlt.h(2,1) * y0 + dlt.h(2,2)));
+
+            //считаем как точно точка из 1-го изображения "легла" на 2-ое
+            double localEps = pointDistance(newX, x1, newY, y1);
+
+            if(localEps < eps){
+                //годно
+                localInliers++;
+            }
+        }
+
+        if(inliersInWiner < localInliers){
+            inliersInWiner = localInliers;
+            winer = dlt;
+        }
+    }
+
+    //найдём лучшие точки для лучшего соответствия и сделаем для них DLT (уточнение)
+    std::vector<std::pair<InterestingPoint, InterestingPoint>> tmp;
+
+    for(int i = 0; i < pairs.size(); i++){
+
+        std::pair<InterestingPoint, InterestingPoint> currentPair = pairs[i];
+
+        double x0 = currentPair.first.x_;
+        double y0 = currentPair.first.y_;
+        double x1 = currentPair.second.x_;
+        double y1 = currentPair.second.y_;
+
+        //считаем куда точка из 1-го изображения "легла" на 2-ое (лекция 5 стр 21)
+        double newX = (winer.h(0,0) * x0 + winer.h(0,1) * y0 + winer.h(0,2)) / ((winer.h(2,0) * x0 + winer.h(2,1) * y0 + winer.h(2,2)));
+        double newY = (winer.h(1,0) * x0 + winer.h(1,1) * y0 + winer.h(1,2)) / ((winer.h(2,0) * x0 + winer.h(2,1) * y0 + winer.h(2,2)));
+
+        //считаем как точно точка из 1-го изображения "легла" на 2-ое
+        double localEps = pointDistance(newX, x1, newY, y1);
+
+        if(localEps < eps){
+            tmp.push_back(currentPair);
+        }
+    }
+    printf("RANSAC OK\n");
+
+    return DirectLinerTransformation(tmp);
 }

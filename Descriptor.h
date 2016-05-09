@@ -64,8 +64,17 @@ std::vector<std::pair<InterestingPoint, InterestingPoint>> static getPairs(const
         }
         if(minDist1 / minDist2 < 0.8){
             std::pair<InterestingPoint, InterestingPoint> Pair;
-            Pair.first = descriptors1[i].getInterestingPoint();
-            Pair.second = descriptors2[minJ1].getInterestingPoint();
+            InterestingPoint first = descriptors1[i].getInterestingPoint();
+            first.x_ *= pow(2,first.octave_);
+            first.y_ *= pow(2,first.octave_);
+
+            InterestingPoint second = descriptors2[minJ1].getInterestingPoint();
+            second.x_ *= pow(2,second.octave_);
+            second.y_ *= pow(2,second.octave_);
+
+
+            Pair.first = first;
+            Pair.second = second;
 
             pairs.push_back(Pair);
         }

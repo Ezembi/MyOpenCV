@@ -3,11 +3,11 @@
 DirectLinerTransformation::DirectLinerTransformation()
 {
     for(int i = 0; i < 9; i++){
-        h[i] = 0.0;
+        h_[i] = 0.0;
     }
 }
 
-DirectLinerTransformation::DirectLinerTransformation(const std::vector<std::pair<InterestingPoint, InterestingPoint> > pairs)
+DirectLinerTransformation::DirectLinerTransformation(const std::vector<std::pair<InterestingPoint, InterestingPoint> > &pairs)
 {
     const int j = 9;
     const int n = pairs.size();
@@ -48,7 +48,7 @@ DirectLinerTransformation::DirectLinerTransformation(const std::vector<std::pair
     double h22 = gsl_matrix_get(U, 8, 8);
     for(int i = 0; i < j; i++)
     {
-        h[i] = gsl_matrix_get(U, i, 8) / h22;
+        h_[i] = gsl_matrix_get(U, i, 8) / h22;
     }
 
     gsl_matrix_free(A);
@@ -58,7 +58,12 @@ DirectLinerTransformation::DirectLinerTransformation(const std::vector<std::pair
     gsl_vector_free(work);
 }
 
-void DirectLinerTransformation::FillMatrix(gsl_matrix *A, const std::vector<std::pair<InterestingPoint, InterestingPoint> > pairs)
+double DirectLinerTransformation::h(int i, int j) const
+{
+    return h_[i * 3 + j];
+}
+
+void DirectLinerTransformation::FillMatrix(gsl_matrix *A, const std::vector<std::pair<InterestingPoint, InterestingPoint>> &pairs)
 {
     //лекция 5, стр. 23, всё 1 в 1
     for(int i = 0; i < pairs.size(); i++){

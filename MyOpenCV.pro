@@ -31,7 +31,7 @@ HEADERS += \
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../Programs/GnuWin32/lib/ -lgsl
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../Programs/GnuWin32/lib/ -lgsld
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../Programs/GnuWin32/lib/ -lgsl
 
 INCLUDEPATH += $$PWD/../../../../Programs/GnuWin32/include
 DEPENDPATH += $$PWD/../../../../Programs/GnuWin32/include
