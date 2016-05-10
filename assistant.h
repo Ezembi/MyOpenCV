@@ -15,6 +15,7 @@ struct InterestingPoint
     double alpha_;
     int octave_;
     int level_;
+    double sigma_;
 
     InterestingPoint()
     {
@@ -25,6 +26,7 @@ struct InterestingPoint
         level_ = -1;
         value_ = 0.0;
         alpha_ = 0.0;
+        sigma_ = 0.0;
     }
 
     InterestingPoint(int x, int y, double value)
@@ -36,6 +38,7 @@ struct InterestingPoint
         level_ = -1;
         value_ = value;
         alpha_ = 0.0;
+        sigma_ = 0.0;
     }
 
     InterestingPoint(int x, int y, double value, double alpha)
@@ -47,6 +50,7 @@ struct InterestingPoint
         level_ = -1;
         value_ = value;
         alpha_ = alpha;
+        sigma_ = 0.0;
     }
 
     InterestingPoint(int x, int y, int r, double value, double alpha)
@@ -58,6 +62,7 @@ struct InterestingPoint
         level_ = -1;
         value_ = value;
         alpha_ = alpha;
+        sigma_ = 0.0;
     }
 
     InterestingPoint(int x, int y, int r, int octave, int level, double value, double alpha)
@@ -69,6 +74,19 @@ struct InterestingPoint
         level_ = level;
         value_ = value;
         alpha_ = alpha;
+        sigma_ = 0.0;
+    }
+
+    InterestingPoint(int x, int y, int r, int octave, int level, double sigma, double value, double alpha)
+    {
+        x_ = x;
+        y_ = y;
+        r_ = r;
+        octave_ = octave;
+        level_ = level;
+        value_ = value;
+        alpha_ = alpha;
+        sigma_ = sigma;
     }
 
     void print(){
@@ -125,7 +143,7 @@ void static printKernel(double* kernel, int width, int height)
 }
 
 //заполнения ядра Гауса
-void static getGaussianKernel(double* kernel, int width, int height, double sigma)
+void static getGaussianKernel(double* kernel, int width, int height, double sigma_)
 {
     double numPow;
     int x0, x1, y0, y1;
@@ -137,8 +155,8 @@ void static getGaussianKernel(double* kernel, int width, int height, double sigm
     for(double x = x0, xKernel = 0 ; x <= x1; x++, xKernel++) {
         for(double y = y0, yKernel = 0; y <= y1; y++, yKernel++){
             numPow = 0;
-            numPow = -(x * x + y * y) / (2.0 * (sigma * sigma));
-            kernel[getIndex(qRound(xKernel), qRound(yKernel), width, height)] = pow(M_E, numPow) * (1.0 / (2.0 * M_PI * (sigma * sigma)));
+            numPow = -(x * x + y * y) / (2.0 * (sigma_ * sigma_));
+            kernel[getIndex(qRound(xKernel), qRound(yKernel), width, height)] = pow(M_E, numPow) * (1.0 / (2.0 * M_PI * (sigma_ * sigma_)));
         }
     }
 }

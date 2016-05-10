@@ -23,8 +23,8 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
 
         for(double level = 0; level <= numLevel; level++){
 
-            double levelSigma = sigma0 * pow(k, level);     //сигма текущего уровня (глобальная)
-            //double levelSigma = sigma * k;
+            //double levelSigma = sigma0 * pow(k, level);     //сигма текущего уровня (глобальная)
+            double levelSigma = sigma * k;
 
             deltaSigma = sqrt(levelSigma * levelSigma - sigma * sigma);
 

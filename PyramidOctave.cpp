@@ -81,6 +81,7 @@ std::vector<InterestingPoint> PyramidOctave::octaveDoG()
                                     sqrt(2.0) * pow(2,n_) * levels[i].getGlobalSigma(),
                                     getNumberOctave(),
                                     i,
+                                    levels[i].getLocalSigma(),
                                     pixel,
                                     0.0
                                     );

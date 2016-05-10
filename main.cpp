@@ -69,7 +69,7 @@ void Lab_3(){
                 "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\Harris.bmp",
                 ANMS(
                     image1.Harris(3,3,4,0.06),
-                    300
+                    200
                     )
                 );
     MyQImage originalImage2 = image2;
@@ -77,7 +77,7 @@ void Lab_3(){
                 "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\Moravec.bmp",
                 ANMS(
                     image2.Moravec(5,5,3,3,0.2),
-                    300
+                    1000
                     )
                 );
 }
@@ -189,13 +189,13 @@ void Lab_4(){
 void Lab_5(){
 
     //грузим кртинки
-//    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
-//    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
-    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild1.jpg");
-    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild2.jpg");
+    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
+    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
+//    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild1.jpg");
+//    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild2.jpg");
 
     //кол-во интересных точек
-    int nPoint = 300;
+    int nPoint = 200;
 
     //получаем все дескрипторы для первого изображения
     std::vector<Descriptor> descriptors1;
@@ -223,10 +223,12 @@ void Lab_5(){
 
 //Блобы
 void Lab_6_7(){
-    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
-    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2d2.bmp");
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
+//    MyQImage ("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2d2.bmp");
 //    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.jpg");
 //    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.jpg");
+    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
+    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z3.jpg");
 
     Pyramid pyramid1(resultImage1, 1.6, 7, 5);
 

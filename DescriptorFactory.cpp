@@ -53,7 +53,14 @@ Descriptor DescriptorFactory::getDescrIntrPoint(const InterestingPoint point)
     double disToCurCen;                             //дистанция до текущего центра
     double disToRelCen;                             //дистанция до смежного центра
     int nPart = 4;                                  //кол-во частей гистограммы по 1-ой оси
-    int side = 8;                                   //полусторона области для дескриптора
+
+    double side = 8.0;                                   //полусторона области для дескриптора
+
+    //маштаб окрастности
+    if(point.sigma_ != 0.0){
+        side *= point.sigma_;
+    }
+
     double maxDist = sqrt(side * side + side * side);//радиус (окресность) от интересной точки
 
     for(int i = -side * koef; i < side * koef; i++){
