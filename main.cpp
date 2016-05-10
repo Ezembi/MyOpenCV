@@ -12,8 +12,17 @@ void Lab_4();
 void Lab_5();
 void Lab_6_7();
 void Lab_8();
+void Kurs();
 void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vector<Descriptor> &descriptors1, const std::vector<Descriptor> &descriptors2, QString saveFileName);
 void drawPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLinerTransformation dlt, QString saveFileName);
+void drawPanoramFor3Images(
+        const MyQImage &image1,
+        const MyQImage &image2,
+        const MyQImage &image3,
+        const DirectLinerTransformation dlt1,
+        const DirectLinerTransformation dlt2,
+        QString saveFileName
+        );
 DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, InterestingPoint>> &pairs);
 
 
@@ -21,7 +30,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    Lab_8();
+    Kurs();
 
     printf("\n-=OK=-");
     exit(0);
@@ -325,6 +334,87 @@ void Lab_8(){
     drawPanoram(resultImage1, resultImage2, dlt, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\panoram.bmp");
 }
 
+//панорама
+void Kurs(){
+    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf11.bmp");
+    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf2.bmp");
+    MyQImage resultImage3("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf3.bmp");
+
+    Pyramid pyramid1(resultImage1, 1.6, 7, 5);
+
+    std::vector<InterestingPoint> blobs1;
+    blobs1 = pyramid1.getBlobs();
+    std::vector<Descriptor> descriptors1;
+
+    for(int i = 0; i < pyramid1.nOctave(); i++)
+    {
+        for(int j = 0; j < pyramid1.nLevel(i); j++){
+            std::vector<Descriptor> descriptors;
+            DescriptorFactory df(pyramid1.getImage(i,j) ,i ,j);  //фабрика для уровня и октавы
+            descriptors = df.getDescriptors(blobs1);            //дескрипторы уровня и октавы
+
+            for(int k = 0; k < descriptors.size(); k++){
+                //сохраняем дескрипторы для уровня и октавы
+                descriptors1.push_back(descriptors[k]);
+            }
+        }
+    }
+
+    Pyramid pyramid2(resultImage2, 1.6, 7, 5);
+
+    std::vector<InterestingPoint> blobs2;
+    blobs2 = pyramid2.getBlobs();
+    std::vector<Descriptor> descriptors2;
+
+    for(int i = 0; i < pyramid2.nOctave(); i++)
+    {
+        for(int j = 0; j < pyramid2.nLevel(i); j++){
+            std::vector<Descriptor> descriptors;
+            DescriptorFactory df(pyramid2.getImage(i,j) ,i ,j);  //фабрика для уровня и октавы
+            descriptors = df.getDescriptors(blobs2);            //дескрипторы уровня и октавы
+
+            for(int k = 0; k < descriptors.size(); k++){
+                //сохраняем дескрипторы для уровня и октавы
+                descriptors2.push_back(descriptors[k]);
+            }
+        }
+    }
+
+    Pyramid pyramid3(resultImage3, 1.6, 7, 5);
+
+    std::vector<InterestingPoint> blobs3;
+    blobs3 = pyramid3.getBlobs();
+    std::vector<Descriptor> descriptors3;
+
+    for(int i = 0; i < pyramid3.nOctave(); i++)
+    {
+        for(int j = 0; j < pyramid3.nLevel(i); j++){
+            std::vector<Descriptor> descriptors;
+            DescriptorFactory df(pyramid3.getImage(i,j) ,i ,j);  //фабрика для уровня и октавы
+            descriptors = df.getDescriptors(blobs3);            //дескрипторы уровня и октавы
+
+            for(int k = 0; k < descriptors.size(); k++){
+                //сохраняем дескрипторы для уровня и октавы
+                descriptors3.push_back(descriptors[k]);
+            }
+        }
+    }
+
+    draw2Image(resultImage1, resultImage2, descriptors1, descriptors2, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboBlobP0.bmp");
+    draw2Image(resultImage2, resultImage3, descriptors2, descriptors3, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboBlobP1.bmp");
+
+    //поиск "похожих" дескрипторов
+    std::vector<std::pair<InterestingPoint, InterestingPoint>> pairs1 = getPairs(descriptors1, descriptors2);
+    std::vector<std::pair<InterestingPoint, InterestingPoint>> pairs2 = getPairs(descriptors3, descriptors2);
+
+    DirectLinerTransformation dlt1 = RANSAC(pairs1);
+    DirectLinerTransformation dlt2 = RANSAC(pairs2);
+
+    //добавить рансак
+
+    drawPanoramFor3Images(resultImage1, resultImage2, resultImage3, dlt1, dlt2, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\PanoramFor3Images.bmp");
+}
+
 void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vector<Descriptor> &descriptors1, const std::vector<Descriptor> &descriptors2, QString saveFileName){
     //получаем загруженные картинки
     QImage qIamqe1 = image1.getQImage();
@@ -501,11 +591,62 @@ void drawPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLin
 
 }
 
+void drawPanoramFor3Images(const MyQImage &image1, const MyQImage &image2, const MyQImage &image3, const DirectLinerTransformation dlt1, const DirectLinerTransformation dlt2, QString saveFileName){
+    //получаем загруженные картинки
+    QImage qIamqe1 = image1.getQImage();
+    QImage qIamqe2 = image2.getQImage();
+    QImage qIamqe3 = image3.getQImage();
+
+    //сделаем большОй холст, чтоб не выпасть за край изображения
+    int maxWidth = qIamqe1.width() * 4;
+    int maxHeight =  qIamqe1.height() * 4;
+
+    QImage image(maxWidth, maxHeight, QImage::Format_RGB32);
+
+    QPainter painter;
+    painter.begin(&image);
+    //рисуем второе изображение в центре холста, чтобы первое не выпало за края
+    painter.drawImage(QPoint(maxWidth / 4, maxHeight / 4), qIamqe2);
+
+//    QTransform - ЩИКАРНЕЙЩАЯ хреновина, прмям 10 из 10
+//    QTransform t(ширина                        , сдвиг правого края в низ (+), сдвиг нижней части изображения вправо/влево,
+//                 сдвиг правого края в право (+), высота                      , сдвиг нижней части изображения вверх/вниз,
+//                 сдвиг по х                    , сдвиг по у                  , единичка
+//                 );
+
+    //трансформайия первого изображения, чтоб точно подогнать картинки
+    QTransform t1(dlt1.h(0,0),dlt1.h(1,0),dlt1.h(2,0)/2,    //подогпал как батька
+                  dlt1.h(0,1),dlt1.h(1,1),dlt1.h(2,1)/2,    //подогпал как батька
+                  dlt1.h(0,2) + maxWidth / 4, dlt1.h(1,2) + maxHeight / 4, dlt1.h(2,2)
+                  );//не то чтобы 1в1, но на учивление точно \_(^-^)_/
+
+    QTransform t2(dlt2.h(0,0),dlt2.h(1,0),dlt2.h(2,0)/2,    //подогпал как батька
+                  dlt2.h(0,1),dlt2.h(1,1),dlt2.h(2,1)/2,    //подогпал как батька
+                  dlt2.h(0,2) + maxWidth / 4, dlt2.h(1,2) + maxHeight / 4, dlt2.h(2,2)
+                  );//не то чтобы 1в1, но на учивление точно \_(^-^)_/
+
+
+//    QTransform t(1, 0, 0,
+//                 0, 1, 0,
+//                 dlt.h(0,2) + maxWidth / 3, dlt.h(1,2) + maxHeight / 3, dlt.h(2,2)
+//                 );//ПОПАЛ!!!
+
+    //применяем рансформацию
+    painter.setTransform(t1);
+    painter.drawImage(QPoint(0,0), qIamqe1);
+
+    painter.setTransform(t2);
+    painter.drawImage(QPoint(0,0), qIamqe3);
+
+    painter.end();
+    image.save(saveFileName);
+}
+
 DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, InterestingPoint>> &pairs){
     printf("Start: RANSAC\n");
     srand(time(NULL));
-    DirectLinerTransformation winer;    //лучший DLT
-    int inliersInWiner = 0;             //кол-во совподений в лучшем результате DLT
+    DirectLinerTransformation winner;    //лучший DLT
+    int inliersInWinner = 0;             //кол-во совподений в лучшем результате DLT
     const int nRandomPoints = 20;       //кол-во пар для нахождения наилучшего DLT
     int randomPoints[nRandomPoints];    //массив рандомных номеров пар
     const int maxSteps = 1000;          //кол-во шагов
@@ -568,9 +709,9 @@ DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, I
             }
         }
 
-        if(inliersInWiner < localInliers){
-            inliersInWiner = localInliers;
-            winer = dlt;
+        if(inliersInWinner < localInliers){
+            inliersInWinner = localInliers;
+            winner = dlt;
         }
     }
 
@@ -587,8 +728,8 @@ DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, I
         double y1 = currentPair.second.y_;
 
         //считаем куда точка из 1-го изображения "легла" на 2-ое (лекция 5 стр 21)
-        double newX = (winer.h(0,0) * x0 + winer.h(0,1) * y0 + winer.h(0,2)) / ((winer.h(2,0) * x0 + winer.h(2,1) * y0 + winer.h(2,2)));
-        double newY = (winer.h(1,0) * x0 + winer.h(1,1) * y0 + winer.h(1,2)) / ((winer.h(2,0) * x0 + winer.h(2,1) * y0 + winer.h(2,2)));
+        double newX = (winner.h(0,0) * x0 + winner.h(0,1) * y0 + winner.h(0,2)) / ((winner.h(2,0) * x0 + winner.h(2,1) * y0 + winner.h(2,2)));
+        double newY = (winner.h(1,0) * x0 + winner.h(1,1) * y0 + winner.h(1,2)) / ((winner.h(2,0) * x0 + winner.h(2,1) * y0 + winner.h(2,2)));
 
         //считаем как точно точка из 1-го изображения "легла" на 2-ое
         double localEps = pointDistance(newX, x1, newY, y1);
