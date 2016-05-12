@@ -12,9 +12,11 @@ void Lab_4();
 void Lab_5();
 void Lab_6_7();
 void Lab_8();
+void Lab_9();
 void Kurs();
 void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vector<Descriptor> &descriptors1, const std::vector<Descriptor> &descriptors2, QString saveFileName);
-void drawPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLinerTransformation dlt, QString saveFileName);
+void drawMyPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLinerTransformation dlt, QString saveFileName);
+void drawPanoram(const QImage &qImaqe1, const QImage &qImaqe2, const DirectLinerTransformation dlt, QString saveFileName);
 void drawPanoramFor3Images(
         const MyQImage &image1,
         const MyQImage &image2,
@@ -24,13 +26,14 @@ void drawPanoramFor3Images(
         QString saveFileName
         );
 DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, InterestingPoint>> &pairs);
+std::vector<std::pair<InterestingPoint, InterestingPoint>> Hough(const std::vector<std::pair<InterestingPoint, InterestingPoint>> &pairs, const MyQImage &bigImage, const MyQImage &smallImage);
 
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    Kurs();
+    Lab_9();
 
     printf("\n-=OK=-");
     exit(0);
@@ -189,10 +192,12 @@ void Lab_4(){
 void Lab_5(){
 
     //грузим кртинки
-    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
-    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
+//    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
+//    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z2_130.jpg");
 //    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild1.jpg");
 //    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild2.jpg");
+    MyQImage image1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\big.jpg");
+    MyQImage image2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\small.jpg");
 
     //кол-во интересных точек
     int nPoint = 200;
@@ -227,8 +232,12 @@ void Lab_6_7(){
 //    MyQImage ("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2d2.bmp");
 //    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.jpg");
 //    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.jpg");
-    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
-    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z3.jpg");
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z1.jpg");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\z3.jpg");
+    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\pr1.jpg");
+    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\pr2.jpg");
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\big.jpg");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\small.jpg");
 
     Pyramid pyramid1(resultImage1, 1.6, 7, 5);
 
@@ -281,8 +290,12 @@ void Lab_8(){
 //    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\bild2.jpg");
 //    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
 //    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.png");
-    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf11.bmp");
-    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf2.bmp");
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf11.bmp");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf2.bmp");
+    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\pr1.jpg");
+    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\pr2.jpg");
+//    MyQImage resultImage1("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\big.jpg");
+//    MyQImage resultImage2("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\small.jpg");
 
     Pyramid pyramid1(resultImage1, 1.6, 7, 5);
 
@@ -331,9 +344,72 @@ void Lab_8(){
 
     DirectLinerTransformation dlt = RANSAC(pairs);
 
-    //добавить рансак
+    drawMyPanoram(resultImage1, resultImage2, dlt, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\panoram.bmp");
+}
 
-    drawPanoram(resultImage1, resultImage2, dlt, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\panoram.bmp");
+void Lab_9(){
+//        MyQImage bigImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.jpg");
+//        MyQImage smallImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.jpg");
+//        MyQImage bigImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p1.png");
+//        MyQImage smallImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\p2.png");
+//        MyQImage bigImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf11.bmp");
+//        MyQImage smallImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf2.bmp");
+        MyQImage smallImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\pr1.jpg");
+        MyQImage bigImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\pr2.jpg");
+//        MyQImage bigImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf2.bmp");
+//        MyQImage smallImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\epf3.bmp");
+    //    MyQImage bigImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\big.jpg");
+    //    MyQImage smallImage("D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\small.jpg");
+
+        Pyramid pyramid1(smallImage, 1.6, 7, 5);
+
+        std::vector<InterestingPoint> blobs1;
+        blobs1 = pyramid1.getBlobs();
+        std::vector<Descriptor> descriptors1;
+
+        for(int i = 0; i < pyramid1.nOctave(); i++)
+        {
+            for(int j = 0; j < pyramid1.nLevel(i); j++){
+                std::vector<Descriptor> descriptors;
+                DescriptorFactory df(pyramid1.getImage(i,j) ,i ,j);  //фабрика для уровня и октавы
+                descriptors = df.getDescriptors(blobs1);            //дескрипторы уровня и октавы
+
+                for(int k = 0; k < descriptors.size(); k++){
+                    //сохраняем дескрипторы для уровня и октавы
+                    descriptors1.push_back(descriptors[k]);
+                }
+            }
+        }
+
+        Pyramid pyramid2(bigImage, 1.6, 7, 5);
+
+        std::vector<InterestingPoint> blobs2;
+        blobs2 = pyramid2.getBlobs();
+        std::vector<Descriptor> descriptors2;
+
+        for(int i = 0; i < pyramid2.nOctave(); i++)
+        {
+            for(int j = 0; j < pyramid2.nLevel(i); j++){
+                std::vector<Descriptor> descriptors;
+                DescriptorFactory df(pyramid2.getImage(i,j) ,i ,j);  //фабрика для уровня и октавы
+                descriptors = df.getDescriptors(blobs2);            //дескрипторы уровня и октавы
+
+                for(int k = 0; k < descriptors.size(); k++){
+                    //сохраняем дескрипторы для уровня и октавы
+                    descriptors2.push_back(descriptors[k]);
+                }
+            }
+        }
+
+        draw2Image(bigImage, smallImage, descriptors1, descriptors2, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\comboBlob0.bmp");
+
+        //поиск "похожих" дескрипторов
+        std::vector<std::pair<InterestingPoint, InterestingPoint>> pairs = getPairs(descriptors1, descriptors2);
+
+        DirectLinerTransformation dlt = RANSAC(Hough(pairs, bigImage, smallImage));
+//        DirectLinerTransformation dlt(Hough(pairs, bigImage, smallImage));
+
+        drawMyPanoram(smallImage, bigImage, dlt, "D:\\Qt\\Qt5.5.1\\Projects\\PictureForMyOpenCv\\panoram.bmp");
 }
 
 //панорама
@@ -550,21 +626,17 @@ void draw2Image(const MyQImage &image1, const MyQImage &image2, const std::vecto
     image.save(saveFileName);
 }
 
-void drawPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLinerTransformation dlt, QString saveFileName){
-    //получаем загруженные картинки
-    QImage qIamqe1 = image1.getQImage();
-    QImage qIamqe2 = image2.getQImage();
-
+void drawPanoram(const QImage &qImaqe1, const QImage &qImaqe2, const DirectLinerTransformation dlt, QString saveFileName){
     //сделаем большОй холст, чтоб не выпасть за край изображения
-    int maxWidth = qIamqe1.width() * 3;
-    int maxHeight =  qIamqe1.height() * 3;
+    int maxWidth = qImaqe1.width() * 3;
+    int maxHeight =  qImaqe1.height() * 3;
 
     QImage image(maxWidth, maxHeight, QImage::Format_RGB32);
 
     QPainter painter;
     painter.begin(&image);
     //рисуем второе изображение в центре холста, чтобы первое не выпало за края
-    painter.drawImage(QPoint(maxWidth / 3, maxHeight / 3), qIamqe2);
+    painter.drawImage(QPoint(maxWidth / 3, maxHeight / 3), qImaqe2);
 
 //    QTransform - ЩИКАРНЕЙЩАЯ хреновина, прмям 10 из 10
 //    QTransform t(ширина                        , сдвиг правого края в низ (+), сдвиг нижней части изображения вправо/влево,
@@ -586,11 +658,18 @@ void drawPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLin
 
     //применяем рансформацию
     painter.setTransform(t);
-    painter.drawImage(QPoint(0,0), qIamqe1);
+    painter.drawImage(QPoint(0,0), qImaqe1);
 
     painter.end();
     image.save(saveFileName);
+}
 
+void drawMyPanoram(const MyQImage &image1, const MyQImage &image2, const DirectLinerTransformation dlt, QString saveFileName){
+    //получаем загруженные картинки
+    QImage qImaqe1 = image1.getQImage();
+    QImage qImaqe2 = image2.getQImage();
+
+    drawPanoram(qImaqe1, qImaqe2, dlt, saveFileName);
 }
 
 void drawPanoramFor3Images(const MyQImage &image1, const MyQImage &image2, const MyQImage &image3, const DirectLinerTransformation dlt1, const DirectLinerTransformation dlt2, QString saveFileName){
@@ -649,7 +728,7 @@ DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, I
     srand(time(NULL));
     DirectLinerTransformation winner;    //лучший DLT
     int inliersInWinner = 0;             //кол-во совподений в лучшем результате DLT
-    const int nRandomPoints = 20;       //кол-во пар для нахождения наилучшего DLT
+    const int nRandomPoints = 4;       //кол-во пар для нахождения наилучшего DLT
     int randomPoints[nRandomPoints];    //массив рандомных номеров пар
     const int maxSteps = 1000;          //кол-во шагов
     const double eps = 3;               //ошибка
@@ -743,4 +822,144 @@ DirectLinerTransformation RANSAC(const std::vector<std::pair<InterestingPoint, I
     printf("RANSAC OK\n");
 
     return DirectLinerTransformation(tmp);
+}
+
+std::vector<std::pair<InterestingPoint, InterestingPoint>> Hough(const std::vector<std::pair<InterestingPoint, InterestingPoint>> &pairs, const MyQImage &bigImage, const MyQImage &smallImage){
+
+    printf("Start: Hough");
+    //чёт падает если больще о_О, похоже 1 кусок памяти такого размена не выделяет
+    const int nX = 50, nY = 50, nScale = 20, nAlpha = 10;
+
+    //центр изображения (образца)
+    const int x0 = smallImage.getWidth() / 2;
+    const int y0 = smallImage.getHeight() / 2;
+
+    int params[nX][nY][nScale][nAlpha];
+//    int params1[nX][nY][nScale][nAlpha];
+
+    for(int x = 0; x < nX; x++){
+        for(int y = 0; y < nY; y++){
+            for(int s = 0; s < nScale; s++){
+                for(int a = 0; a < nAlpha; a++){
+                    params[x][y][s][a] = -1;
+//                    params1[x][y][s][a] = 0;
+                }
+            }
+        }
+    }
+
+    const int width = bigImage.getWidth(), height = bigImage.getHeight();
+
+    std::vector<std::vector<int>> votes;
+    int nVotes = 0;
+
+    for(int i = 0; i < pairs.size(); i++){
+
+        InterestingPoint point1 = pairs[i].first;
+        InterestingPoint point2 = pairs[i].second;
+
+
+        //масштаб
+        double newScale = point1.r_ / point2.r_;
+
+        //поворот
+        double newAlpha = point1.alpha_ - point2.alpha_;
+
+        //вектор от центра до точки
+        int x1 = point1.x_ - x0;
+        int y1 = point1.y_ - y0;
+
+        //вертим и масштабируем вектор в друое изображение
+        int newX = (x1 * cos(newAlpha * M_PI / 180.0) - y1 * sin(newAlpha * M_PI / 180.0) + 0.5) * newScale;
+        int newY = (x1 * sin(newAlpha * M_PI / 180.0) + y1 * cos(newAlpha * M_PI / 180.0) + 0.5) * newScale;
+
+
+        //узнаём корзины
+        int xBin = ((newX + width / 2) / (width  / nX) + 0.5);
+        int yBin = ((newY + height / 2)/ (height * nY) + 0.5);
+        int sBin = log2(newScale / pow(2.0,-5.0)) * (double)nScale / log2(pow(2.0,5.0) / pow(2.0,-5.0));
+        int aBin = (newAlpha / (360.0 / nAlpha) + 0.5);
+
+
+
+        for(int x = xBin; x <= xBin + 1; x++){
+            if(x >= nX || x < 0)
+                continue;
+
+            for(int y = yBin; y <= yBin + 1; y++){
+                if(y >= nY || y < 0)
+                    continue;
+
+                for(int s = sBin; s <= sBin + 1; s++){
+                    if(s >= nScale || s < 0)
+                        continue;
+
+                    for(int a = aBin; a <= aBin + 1; a++){
+                        if(a >= nAlpha || a < 0)
+                            continue;
+
+                        //copyright by Mikhail Laptev
+                        //единственное, что не мог долго понять, как хранить сопоставления
+                        if(params[x][y][s][a] == -1){
+                            params[x][y][s][a] = nVotes++;
+                            std::vector<int> tmp;
+                            tmp.push_back(i);
+                            votes.push_back(tmp);
+                        } else {
+                            votes[params[x][y][s][a]].push_back(i);
+                        }
+//                        params1[x][y][s][a]++;
+                    }
+                }
+            }
+        }
+    }
+
+    int maxI = 0;
+    int max = votes[0].size();
+
+
+    for(int x = 0; x < votes.size(); x++){
+        if(votes[x].size() >= max){
+            max = votes[x].size();
+            maxI = x;
+            printf("\nmax = %d ",max);
+        }
+    }
+
+    std::vector<std::pair<InterestingPoint, InterestingPoint>> result;
+
+    printf("\n\n\nsize = %d \n", pairs.size());
+    for(int x; x < votes[maxI].size(); x++){
+        printf("%d ", votes[maxI][x]);
+        result.push_back(pairs[votes[maxI][x]]);
+    }
+
+
+
+//    for(int x = 0; x < nX; x++){
+//        for(int y = 0; y < nY; y++){
+//            for(int s = 0; s < nScale; s++){
+//                for(int a = 0; a < nAlpha; a++){
+//                    if(params1[x][y][s][a] > max){
+//                        max = params1[x][y][s][a];
+//                        //printf(" %d [%d][%d][%d][%d] ", max,x,y,s,a);
+//                    }
+
+//                    if(params1[x][y][s][a] != 0){
+//                        //max = params[x][y][s][a];
+//                        printf("\n %d [%d][%d][%d][%d] ", max,x,y,s,a);
+//                    }
+
+
+//                }
+//            }
+//        }
+//    }
+
+//    printf("\n\n\n max = %d\n\n\n\n", max);
+
+    printf("Hough OK");
+    return pairs;
+
 }

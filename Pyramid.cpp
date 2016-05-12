@@ -2,6 +2,8 @@
 
 Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, const double numLevel)
 {
+    //sigma0 = 1.6
+    //numLevel = 5
     printf("Start: Pyramid\n");
 
     MyQImage levelImage = Image;                            //картинка для свёртки и записи в level
@@ -11,10 +13,10 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
     double k = pow(2.0, 1.0 / numLevel);
 
     double sigma = sigma0;                                  //сигма предыдущего уровня (глобальная)
-    double deltaSigma;                                      //сигма для гауса (локальная)
-    deltaSigma = sqrt(sigma * sigma - 0.8 * 0.8);
+    double localSigma;                                      //сигма для гауса (локальная)
+    localSigma = sqrt(sigma * sigma - 0.8 * 0.8);
 
-    tmpImage = Image.gaussianFilter(deltaSigma);            //фильтруем гаусом до sigma 0
+    tmpImage = Image.gaussianFilter(localSigma);            //фильтруем гаусом до sigma 0
 
     for(int i = 0; i < octave; i++){
 
@@ -23,15 +25,15 @@ Pyramid::Pyramid(const MyQImage &Image, const double sigma0, const int octave, c
 
         for(double level = 0; level <= numLevel; level++){
 
-            //double levelSigma = sigma0 * pow(k, level);     //сигма текущего уровня (глобальная)
-            double levelSigma = sigma * k;
+            double levelSigma = sigma0 * pow(k, level);     //сигма текущего уровня (глобальная)
+//            double levelSigma = sigma * k;
 
-            deltaSigma = sqrt(levelSigma * levelSigma - sigma * sigma);
+            localSigma = sqrt(levelSigma * levelSigma - sigma * sigma);
 
-            levelImage = tmpImage.gaussianFilter(deltaSigma);
+            levelImage = tmpImage.gaussianFilter(localSigma);
             //printf("g = %lf\n", levelSigma);
 
-            PyramidLevel Level(levelImage, deltaSigma, levelSigma, level);
+            PyramidLevel Level(levelImage, localSigma, levelSigma, level);
             octaves.addLevel(Level);
 
             tmpImage = levelImage;

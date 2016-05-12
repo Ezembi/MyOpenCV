@@ -32,7 +32,7 @@ int PyramidOctave::getLevelNumber(int i) const
 
 std::vector<InterestingPoint> PyramidOctave::octaveDoG()
 {
-    double T = 0.001;
+    double T = 0.0005;
     for(int i = 0; i < levels.size() - 1; i++){
         levels[i].Subtraction(levels[i + 1]);
     }
@@ -78,7 +78,7 @@ std::vector<InterestingPoint> PyramidOctave::octaveDoG()
                         InterestingPoint blob(
                                     x,
                                     y,
-                                    sqrt(2.0) * pow(2,n_) * levels[i].getGlobalSigma(),
+                                    pow(2,n_) * levels[i].getGlobalSigma(),
                                     getNumberOctave(),
                                     i,
                                     levels[i].getLocalSigma(),
