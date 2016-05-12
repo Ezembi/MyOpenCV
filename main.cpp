@@ -860,24 +860,24 @@ std::vector<std::pair<InterestingPoint, InterestingPoint>> Hough(const std::vect
 
 
         //масштаб
-        double newScale = point1.r_ / point2.r_;
+        double newScale = point2.r_ / point1.r_;
 
         //поворот
-        double newAlpha = point1.alpha_ - point2.alpha_;
+        double newAlpha = point2.alpha_ - point1.alpha_;
 
         //вектор от центра до точки
-        int x1 = point1.x_ - x0;
-        int y1 = point1.y_ - y0;
+        double x1 = point1.x_ - x0;
+        double y1 = point1.y_ - y0;
 
         //вертим и масштабируем вектор в друое изображение
         int newX = (x1 * cos(newAlpha * M_PI / 180.0) - y1 * sin(newAlpha * M_PI / 180.0) + 0.5) * newScale;
         int newY = (x1 * sin(newAlpha * M_PI / 180.0) + y1 * cos(newAlpha * M_PI / 180.0) + 0.5) * newScale;
 
-
+        //значение (вещественное) (x - xmin) * n / (xmax - xmin)
         //узнаём корзины
-        int xBin = ((newX + width / 2) / (width  / nX) + 0.5);
-        int yBin = ((newY + height / 2)/ (height * nY) + 0.5);
-        int sBin = log2(newScale / pow(2.0,-5.0)) * (double)nScale / log2(pow(2.0,5.0) / pow(2.0,-5.0));
+        int xBin = ((point2.x_ + newX) * nX / width + 0.5);
+        int yBin = ((point2.y_ + newY) * nY / height + 0.5);
+        double sBin = log2(newScale / pow(2.0,-5.0)) * (double)nScale / log2(pow(2.0,5.0) / pow(2.0,-5.0));
         int aBin = (newAlpha / (360.0 / nAlpha) + 0.5);
 
 
@@ -890,24 +890,28 @@ std::vector<std::pair<InterestingPoint, InterestingPoint>> Hough(const std::vect
                 if(y >= nY || y < 0)
                     continue;
 
-                for(int s = sBin; s <= sBin + 1; s++){
-                    if(s >= nScale || s < 0)
+                for(double s = sBin; s <= sBin + 1; s++){
+                    if(s >= nScale || s < 0){
+
                         continue;
+                    }
 
                     for(int a = aBin; a <= aBin + 1; a++){
+
                         if(a >= nAlpha || a < 0)
                             continue;
 
-                        //copyright by Mikhail Laptev
+                        ////copyright by Mikhail Laptev/////
                         //единственное, что не мог долго понять, как хранить сопоставления
-                        if(params[x][y][s][a] == -1){
-                            params[x][y][s][a] = nVotes++;
+                        if(params[x][y][(int)s][a] == -1){
+                            params[x][y][(int)s][a] = nVotes++;
                             std::vector<int> tmp;
                             tmp.push_back(i);
                             votes.push_back(tmp);
                         } else {
-                            votes[params[x][y][s][a]].push_back(i);
+                            votes[params[x][y][(int)s][a]].push_back(i);
                         }
+                        ///////////////////////////////////////
 //                        params1[x][y][s][a]++;
                     }
                 }
@@ -923,15 +927,12 @@ std::vector<std::pair<InterestingPoint, InterestingPoint>> Hough(const std::vect
         if(votes[x].size() >= max){
             max = votes[x].size();
             maxI = x;
-            printf("\nmax = %d ",max);
         }
     }
 
     std::vector<std::pair<InterestingPoint, InterestingPoint>> result;
 
-    printf("\n\n\nsize = %d \n", pairs.size());
     for(int x; x < votes[maxI].size(); x++){
-        printf("%d ", votes[maxI][x]);
         result.push_back(pairs[votes[maxI][x]]);
     }
 
@@ -945,13 +946,10 @@ std::vector<std::pair<InterestingPoint, InterestingPoint>> Hough(const std::vect
 //                        max = params1[x][y][s][a];
 //                        //printf(" %d [%d][%d][%d][%d] ", max,x,y,s,a);
 //                    }
-
 //                    if(params1[x][y][s][a] != 0){
 //                        //max = params[x][y][s][a];
 //                        printf("\n %d [%d][%d][%d][%d] ", max,x,y,s,a);
 //                    }
-
-
 //                }
 //            }
 //        }

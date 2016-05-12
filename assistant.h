@@ -10,7 +10,8 @@
 //интересные точки
 struct InterestingPoint
 {
-    int x_, y_, r_; //r - размер “глобальный” сигмы в масштабе исходного изображения
+    int x_, y_; //r - размер “глобальный” сигмы в масштабе исходного изображения
+    double r_;
     double value_;
     double alpha_;
     int octave_;
@@ -53,7 +54,7 @@ struct InterestingPoint
         sigma_ = 0.0;
     }
 
-    InterestingPoint(int x, int y, int r, double value, double alpha)
+    InterestingPoint(int x, int y, double r, double value, double alpha)
     {
         x_ = x;
         y_ = y;
@@ -65,7 +66,7 @@ struct InterestingPoint
         sigma_ = 0.0;
     }
 
-    InterestingPoint(int x, int y, int r, int octave, int level, double value, double alpha)
+    InterestingPoint(int x, int y, double r, int octave, int level, double value, double alpha)
     {
         x_ = x;
         y_ = y;
@@ -77,7 +78,7 @@ struct InterestingPoint
         sigma_ = 0.0;
     }
 
-    InterestingPoint(int x, int y, int r, int octave, int level, double sigma, double value, double alpha)
+    InterestingPoint(int x, int y, double r, int octave, int level, double sigma, double value, double alpha)
     {
         x_ = x;
         y_ = y;
